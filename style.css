@@ -4,6 +4,12 @@ body {
   background: #f4f4f4;
   color: #333;
 }
+.direction { margin-top:1rem; }
+.direction h3 { margin:0.5rem 0; font-weight:600; color:#0f468e; }
+.passage { font-size:1rem; padding:0.2rem 0; }
+.schedule { font-size:0.9rem; color:#555; margin-top:0.3rem; }
+.stations marquee { font-size:0.9rem; color:#333; }
+.status.warn { background:#fff3cd; color:#856404; padding:0.5rem; border-radius:0.5rem; margin-top:0.5rem; }
 
 header, footer {
   text-align: center;
