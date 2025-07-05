@@ -1,66 +1,38 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="UTF-8">
-  <title>Dashboard Mobilité – Hippodrome Vincennes</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <style>
-    body { margin:0; font-family:'Segoe UI',sans-serif; background:#f0f2f5; color:#222; }
-    header, footer { text-align:center; padding:1rem; background:#0f468e; color:#fff; }
-    main { display:grid; gap:1rem; padding:1rem; max-width:1200px; margin:auto; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
-    .card { background:#fff; border-radius:1rem; box-shadow:0 4px 12px rgba(0,0,0,0.1); padding:1rem; }
-    .card h2 { margin:0 0 0.5rem; font-size:1.2rem; display:flex; align-items:center; gap:0.5rem; }
-    .status { font-size:1rem; padding:0.5rem; border-radius:0.5rem; margin-top:0.5rem; }
-    .status.ok { background:#d4edda; color:#155724; }
-    .status.warn { background:#fff3cd; color:#856404; }
-    .status.error { background:#f8d7da; color:#721c24; }
-    .update-time { font-size:0.9rem; color:#666; margin-top:0.5rem; }
-  </style>
-</head>
-<body>
-  <header>
-    <h1>🚦 Dashboard Mobilité – Hippodrome Vincennes</h1>
-  </header>
-
-  <main>
-    <div class="card">
-      <h2>🚆 RER A – Joinville-le-Pont</h2>
-      <div class="status ok">Prochain passage : dans 5 min</div>
-      <div class="update-time">Mise à jour : 03:45</div>
+<div class="card">
+  <h2>🚆 RER A – Joinville-le-Pont</h2>
+  <div class="direction">
+    <h3>⬆️ Vers La Défense</h3>
+    <div class="passages">
+      <div class="passage">03:45 (dans 5 min)</div>
+      <div class="passage">03:52 (dans 12 min)</div>
+      <div class="passage">04:00 (dans 20 min)</div>
+      <div class="passage">04:07 (dans 27 min)</div>
     </div>
-
-    <div class="card">
-      <h2>🚌 Bus 77 – Hippodrome de Vincennes</h2>
-      <div class="status warn">Service terminé</div>
-      <div class="update-time">Mise à jour : 03:45</div>
+    <div class="schedule">
+      Premier : 05:12 | Dernier : 00:40
     </div>
-
-    <div class="card">
-      <h2>🚌 Bus 201 – Pyramide / École du Breuil</h2>
-      <div class="status ok">Prochain passage : dans 12 min</div>
-      <div class="update-time">Mise à jour : 03:45</div>
+    <div class="stations">
+      <marquee behavior="scroll" direction="left">
+        Joinville - Nogent - Vincennes - Nation - Châtelet...
+      </marquee>
     </div>
+  </div>
 
-    <div class="card">
-      <h2>🚲 Vélib’</h2>
-      <div>Hippodrome : 🚲 4 mécaniques, ⚡ 2 électriques<br>Pyramide : 🚲 3 mécaniques, ⚡ 1 électrique</div>
-      <div class="update-time">Mise à jour : 03:45</div>
+  <div class="direction">
+    <h3>⬇️ Vers Marne-la-Vallée</h3>
+    <div class="passages">
+      <div class="passage">03:48 (dans 8 min)</div>
+      <div class="passage">03:55 (dans 15 min)</div>
+      <div class="passage">04:02 (dans 22 min)</div>
+      <div class="passage">04:09 (dans 29 min)</div>
     </div>
-
-    <div class="card">
-      <h2>🚦 Routes</h2>
-      <div class="status error">Erreur trafic (flux indisponible)</div>
+    <div class="schedule">
+      Premier : 05:00 | Dernier : 00:50
     </div>
-
-    <div class="card">
-      <h2>🌤 Météo locale</h2>
-      <div>18.9°C, partiellement nuageux</div>
-      <div class="update-time">Mise à jour : 03:45</div>
+    <div class="stations">
+      <marquee behavior="scroll" direction="left">
+        Joinville - Champigny - Noisy - Val d’Europe - Disney...
+      </marquee>
     </div>
-  </main>
-
-  <footer>
-    &copy; 2025 Dashboard Mobilité Hippodrome Vincennes
-  </footer>
-</body>
-</html>
+  </div>
+</div>
