@@ -1,0 +1,53 @@
+body {
+  margin: 0;
+  font-family: sans-serif;
+  background: #f4f4f4;
+  color: #333;
+}
+
+header, footer {
+  text-align: center;
+  padding: 1em;
+  background: #0f468e;
+  color: white;
+}
+
+header img {
+  height: 50px;
+  margin: 0 10px;
+}
+
+main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1em;
+}
+
+.bloc {
+  background: white;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 600px;
+  margin: 1em 0;
+  padding: 1em;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+.bloc h2 {
+  margin-top: 0;
+}
+
+.passages, .alert, .velib-status, .traffic-status, .weather-info {
+  font-size: 1.1em;
+  line-height: 1.5em;
+}
+
+.alert {
+  color: red;
+  font-weight: bold;
+}
+
+footer {
+  font-size: 0.9em;
+}
