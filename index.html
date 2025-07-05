@@ -9,18 +9,19 @@
     header, footer { text-align:center; padding:1rem; background:#0f468e; color:#fff; }
     .news-banner { background:#0f468e; color:white; padding:0.5rem; font-weight:bold; text-align:center; }
     .news-banner marquee { font-size:1rem; }
-    main { display:flex; flex-direction:column; gap:1rem; padding:1rem; max-width:800px; margin:auto; }
-    .card { background:#fff; border-radius:1rem; box-shadow:0 4px 12px rgba(0,0,0,0.1); padding:1rem; }
-    .card h2 { margin:0 0 0.5rem; font-size:1.2rem; color:#0f468e; }
-    .direction { margin-top:1rem; }
-    .direction h3 { margin:0.5rem 0; font-weight:600; color:#0f468e; }
+    main { display:flex; flex-direction:column; gap:1rem; padding:1rem; max-width:1200px; margin:auto; }
+    .line-grid { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
+    .line-title { grid-column:1/-1; font-size:1.2rem; color:#0f468e; margin-bottom:0.5rem; }
+    .direction-col { background:#fff; border-radius:1rem; padding:1rem; box-shadow:0 4px 12px rgba(0,0,0,0.1); }
+    .direction-col h3 { margin:0 0 0.5rem; color:#0f468e; }
     .passage { font-size:1rem; padding:0.2rem 0; }
     .stops { font-size:0.85rem; color:#444; margin-left:1.5rem; }
     .schedule { font-size:0.9rem; color:#555; margin-top:0.3rem; }
-    .weather-now, .race, .traffic-alert { font-size:1rem; line-height:1.5em; }
+    .traffic-alert { padding:0.5rem; margin:0.2rem 0; background:#ffe6e6; color:#b71c1c; border-radius:0.5rem; font-weight:bold; }
     .status.warn { background:#fff3cd; color:#856404; padding:0.5rem; border-radius:0.5rem; margin-top:0.5rem; font-weight:bold; }
-    .traffic-alert { padding:0.5rem; margin:0.2rem 0; background:#ffe6e6; color:#b71c1c; border-radius:0.5rem; }
-    .countdown { font-weight:bold; color:#0f468e; margin-top:0.2rem; }
+    @media (max-width: 768px) {
+      .line-grid { grid-template-columns:1fr; }
+    }
   </style>
 </head>
 <body>
@@ -34,57 +35,40 @@
   </div>
 
   <main>
-    <div class="card">
-      <h2>🚆 RER A – Joinville-le-Pont</h2>
-      <div class="direction">
+    <div class="line-grid">
+      <h2 class="line-title">🚆 RER A – Joinville-le-Pont</h2>
+
+      <div class="direction-col" id="rer-a-up">
         <h3>⬆️ Vers La Défense</h3>
         <div class="passage">🕒 03:45 (dans 5 min)<div class="stops">Dessert : Joinville ➔ Nogent ➔ Vincennes ➔ Nation ➔ Châtelet ➔ Auber ➔ Charles-de-Gaulle</div></div>
         <div class="passage">🕒 03:52 (dans 12 min)<div class="stops">Dessert : Joinville ➔ Nogent ➔ Vincennes ➔ Nation ➔ Châtelet ➔ Auber ➔ Charles-de-Gaulle</div></div>
         <div class="schedule">Premier : 05:12 | Dernier : 00:40</div>
+        <div class="traffic-alert">⚠️ Retard de 10 min sur ce trajet.</div>
       </div>
-      <div class="direction">
+
+      <div class="direction-col" id="rer-a-down">
         <h3>⬇️ Vers Marne-la-Vallée</h3>
         <div class="status warn">⛔ Service terminé. Reprise prévue à 05:00</div>
         <div class="schedule">Premier : 05:00 | Dernier : 00:50</div>
+        <div class="traffic-alert"></div>
       </div>
     </div>
 
-    <div class="card">
-      <h2>🚌 Bus 77 – Hippodrome de Vincennes</h2>
-      <div class="direction">
+    <div class="line-grid">
+      <h2 class="line-title">🚌 Bus 77 – Hippodrome de Vincennes</h2>
+
+      <div class="direction-col" id="bus-77-up">
         <h3>⬆️ Vers Gare de Lyon</h3>
         <div class="passage">🕒 03:50 (dans 10 min)<div class="stops">Dessert : Hippodrome ➔ Porte Dorée ➔ Daumesnil ➔ Gare de Lyon</div></div>
-        <div class="passage">🕒 04:00 (dans 20 min)<div class="stops">Dessert : Hippodrome ➔ Porte Dorée ➔ Daumesnil ➔ Gare de Lyon</div></div>
         <div class="schedule">Premier : 05:15 | Dernier : 00:10</div>
+        <div class="traffic-alert">⚠️ Terminus modifié Porte Dorée jusqu’à 12h.</div>
       </div>
-      <div class="direction">
+
+      <div class="direction-col" id="bus-77-down">
         <h3>⬇️ Vers Joinville</h3>
         <div class="passage">🕒 03:47 (dans 7 min)<div class="stops">Dessert : Hippodrome ➔ Joinville ➔ Nogent</div></div>
-        <div class="passage">🕒 03:57 (dans 17 min)<div class="stops">Dessert : Hippodrome ➔ Joinville ➔ Nogent</div></div>
         <div class="schedule">Premier : 05:10 | Dernier : 00:20</div>
-      </div>
-    </div>
-
-    <div class="card">
-      <h2>🌤 Météo Vincennes</h2>
-      <div class="weather-now">Température : 18°C<br>Conditions : Partiellement nuageux<br>Vent : 15 km/h</div>
-    </div>
-
-    <div class="card">
-      <h2>⚠️ Infos Trafic</h2>
-      <div class="traffic-alert">🚧 RER A : Retard en direction de La Défense (signalisation). Durée estimée : 15 min.</div>
-      <div class="traffic-alert">🚧 Bus 77 : Terminus modifié Porte Dorée jusqu’à 12h.</div>
-    </div>
-
-    <div class="card">
-      <h2>🐎 Prochaines Courses à Vincennes</h2>
-      <div class="race">
-        🗓 Dimanche 6/07 – Prix du Président – Départ : 16h15
-        <div class="countdown" id="countdown-president"></div>
-      </div>
-      <div class="race">
-        🗓 Mardi 8/07 – Grand Prix d’été – Départ : 20h45
-        <div class="countdown" id="countdown-grandprix"></div>
+        <div class="traffic-alert"></div>
       </div>
     </div>
   </main>
@@ -92,30 +76,6 @@
   <footer>
     &copy; 2025 Dashboard Mobilité Hippodrome Vincennes – Données IDFM, Vélib’, Data.gouv
   </footer>
-
-  <script>
-  function startCountdown(elementId, targetDate) {
-    function update() {
-      const now = new Date();
-      const diff = targetDate - now;
-      const el = document.getElementById(elementId);
-      if (!el) return;
-      if (diff <= 0) {
-        el.textContent = "🏁 La course a commencé !";
-        return;
-      }
-      const d = Math.floor(diff / (1000*60*60*24));
-      const h = Math.floor((diff / (1000*60*60)) % 24);
-      const m = Math.floor((diff / (1000*60)) % 60);
-      const s = Math.floor((diff / 1000) % 60);
-      el.textContent = `⏳ Début dans ${d}j ${h}h ${m}m ${s}s`;
-    }
-    update();
-    setInterval(update, 1000);
-  }
-  startCountdown('countdown-president', new Date('2025-07-06T16:15:00+02:00'));
-  startCountdown('countdown-grandprix', new Date('2025-07-08T20:45:00+02:00'));
-  </script>
 
 </body>
 </html>
