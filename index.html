@@ -1,38 +1,79 @@
-<div class="card">
-  <h2>🚆 RER A – Joinville-le-Pont</h2>
-  <div class="direction">
-    <h3>⬆️ Vers La Défense</h3>
-    <div class="passages">
-      <div class="passage">03:45 (dans 5 min)</div>
-      <div class="passage">03:52 (dans 12 min)</div>
-      <div class="passage">04:00 (dans 20 min)</div>
-      <div class="passage">04:07 (dans 27 min)</div>
-    </div>
-    <div class="schedule">
-      Premier : 05:12 | Dernier : 00:40
-    </div>
-    <div class="stations">
-      <marquee behavior="scroll" direction="left">
-        Joinville - Nogent - Vincennes - Nation - Châtelet...
-      </marquee>
-    </div>
-  </div>
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Dashboard Mobilité Hippodrome Vincennes</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body { margin:0; font-family:sans-serif; background:#f0f2f5; color:#222; }
+    header, footer { text-align:center; padding:1rem; background:#0f468e; color:#fff; }
+    main { display:flex; flex-direction:column; gap:1rem; padding:1rem; max-width:800px; margin:auto; }
+    .card { background:#fff; border-radius:1rem; box-shadow:0 4px 12px rgba(0,0,0,0.1); padding:1rem; }
+    .card h2 { margin:0 0 0.5rem; font-size:1.2rem; color:#0f468e; }
+    .direction { margin-top:1rem; }
+    .direction h3 { margin:0.5rem 0; font-weight:600; color:#0f468e; }
+    .passage { font-size:1rem; padding:0.2rem 0; }
+    .schedule { font-size:0.9rem; color:#555; margin-top:0.3rem; }
+    .stations { overflow:hidden; white-space:nowrap; margin-top:0.5rem; }
+    .stations div { display:inline-block; animation:scroll 20s linear infinite; }
+    .status.warn { background:#fff3cd; color:#856404; padding:0.5rem; border-radius:0.5rem; margin-top:0.5rem; font-weight:bold; }
+    @keyframes scroll { 0%{transform:translateX(100%);} 100%{transform:translateX(-100%);} }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🚦 Dashboard Mobilité – Hippodrome Vincennes</h1>
+  </header>
 
-  <div class="direction">
-    <h3>⬇️ Vers Marne-la-Vallée</h3>
-    <div class="passages">
-      <div class="passage">03:48 (dans 8 min)</div>
-      <div class="passage">03:55 (dans 15 min)</div>
-      <div class="passage">04:02 (dans 22 min)</div>
-      <div class="passage">04:09 (dans 29 min)</div>
+  <main>
+    <div class="card">
+      <h2>🚆 RER A – Joinville-le-Pont</h2>
+      
+      <div class="direction">
+        <h3>⬆️ Vers La Défense</h3>
+        <div class="passage">Prochain : 03:45 (dans 5 min)</div>
+        <div class="passage">03:52 (dans 12 min)</div>
+        <div class="passage">04:00 (dans 20 min)</div>
+        <div class="passage">04:07 (dans 27 min)</div>
+        <div class="schedule">Premier : 05:12 | Dernier : 00:40</div>
+        <div class="stations"><div>Joinville - Nogent - Vincennes - Nation - Châtelet - Auber - Charles de Gaulle...</div></div>
+      </div>
+
+      <div class="direction">
+        <h3>⬇️ Vers Marne-la-Vallée</h3>
+        <div class="status warn">⛔ Service terminé. Reprise prévue à 05:00</div>
+        <div class="schedule">Premier : 05:00 | Dernier : 00:50</div>
+        <div class="stations"><div>Joinville - Champigny - Bry - Noisy - Val d’Europe - Marne-la-Vallée...</div></div>
+      </div>
     </div>
-    <div class="schedule">
-      Premier : 05:00 | Dernier : 00:50
+
+    <div class="card">
+      <h2>🚌 Bus 77 – Hippodrome de Vincennes</h2>
+
+      <div class="direction">
+        <h3>⬆️ Vers Gare de Lyon</h3>
+        <div class="passage">Prochain : 03:50 (dans 10 min)</div>
+        <div class="passage">04:00 (dans 20 min)</div>
+        <div class="passage">04:10 (dans 30 min)</div>
+        <div class="passage">04:20 (dans 40 min)</div>
+        <div class="schedule">Premier : 05:15 | Dernier : 00:10</div>
+        <div class="stations"><div>Hippodrome - Porte Dorée - Gare de Lyon...</div></div>
+      </div>
+
+      <div class="direction">
+        <h3>⬇️ Vers Joinville</h3>
+        <div class="passage">Prochain : 03:47 (dans 7 min)</div>
+        <div class="passage">03:57 (dans 17 min)</div>
+        <div class="passage">04:07 (dans 27 min)</div>
+        <div class="passage">04:17 (dans 37 min)</div>
+        <div class="schedule">Premier : 05:10 | Dernier : 00:20</div>
+        <div class="stations"><div>Hippodrome - Joinville - Nogent...</div></div>
+      </div>
     </div>
-    <div class="stations">
-      <marquee behavior="scroll" direction="left">
-        Joinville - Champigny - Noisy - Val d’Europe - Disney...
-      </marquee>
-    </div>
-  </div>
-</div>
+  </main>
+
+  <footer>
+    &copy; 2025 Dashboard Mobilité Hippodrome Vincennes – Données IDFM, Vélib’, Data.gouv
+  </footer>
+</body>
+</html>
