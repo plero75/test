@@ -7,9 +7,9 @@
   <style>
     body { margin:0; font-family:'Segoe UI',sans-serif; background:#f0f2f5; color:#222; }
     header, footer { text-align:center; padding:1rem; background:#0f468e; color:#fff; }
-    main { display:flex; flex-direction:column; gap:1rem; padding:1rem; max-width:800px; margin:auto; }
     .news-banner { background:#0f468e; color:white; padding:0.5rem; font-weight:bold; text-align:center; }
     .news-banner marquee { font-size:1rem; }
+    main { display:flex; flex-direction:column; gap:1rem; padding:1rem; max-width:800px; margin:auto; }
     .card { background:#fff; border-radius:1rem; box-shadow:0 4px 12px rgba(0,0,0,0.1); padding:1rem; }
     .card h2 { margin:0 0 0.5rem; font-size:1.2rem; color:#0f468e; }
     .direction { margin-top:1rem; }
@@ -17,8 +17,10 @@
     .passage { font-size:1rem; padding:0.2rem 0; }
     .stops { font-size:0.85rem; color:#444; margin-left:1.5rem; }
     .schedule { font-size:0.9rem; color:#555; margin-top:0.3rem; }
-    .weather-now { font-size:1rem; line-height:1.5em; }
+    .weather-now, .race, .traffic-alert { font-size:1rem; line-height:1.5em; }
     .status.warn { background:#fff3cd; color:#856404; padding:0.5rem; border-radius:0.5rem; margin-top:0.5rem; font-weight:bold; }
+    .traffic-alert { padding:0.5rem; margin:0.2rem 0; background:#ffe6e6; color:#b71c1c; border-radius:0.5rem; }
+    .countdown { font-weight:bold; color:#0f468e; margin-top:0.2rem; }
   </style>
 </head>
 <body>
@@ -67,11 +69,53 @@
       <h2>🌤 Météo Vincennes</h2>
       <div class="weather-now">Température : 18°C<br>Conditions : Partiellement nuageux<br>Vent : 15 km/h</div>
     </div>
+
+    <div class="card">
+      <h2>⚠️ Infos Trafic</h2>
+      <div class="traffic-alert">🚧 RER A : Retard en direction de La Défense (signalisation). Durée estimée : 15 min.</div>
+      <div class="traffic-alert">🚧 Bus 77 : Terminus modifié Porte Dorée jusqu’à 12h.</div>
+    </div>
+
+    <div class="card">
+      <h2>🐎 Prochaines Courses à Vincennes</h2>
+      <div class="race">
+        🗓 Dimanche 6/07 – Prix du Président – Départ : 16h15
+        <div class="countdown" id="countdown-president"></div>
+      </div>
+      <div class="race">
+        🗓 Mardi 8/07 – Grand Prix d’été – Départ : 20h45
+        <div class="countdown" id="countdown-grandprix"></div>
+      </div>
+    </div>
   </main>
 
   <footer>
     &copy; 2025 Dashboard Mobilité Hippodrome Vincennes – Données IDFM, Vélib’, Data.gouv
   </footer>
+
+  <script>
+  function startCountdown(elementId, targetDate) {
+    function update() {
+      const now = new Date();
+      const diff = targetDate - now;
+      const el = document.getElementById(elementId);
+      if (!el) return;
+      if (diff <= 0) {
+        el.textContent = "🏁 La course a commencé !";
+        return;
+      }
+      const d = Math.floor(diff / (1000*60*60*24));
+      const h = Math.floor((diff / (1000*60*60)) % 24);
+      const m = Math.floor((diff / (1000*60)) % 60);
+      const s = Math.floor((diff / 1000) % 60);
+      el.textContent = `⏳ Début dans ${d}j ${h}h ${m}m ${s}s`;
+    }
+    update();
+    setInterval(update, 1000);
+  }
+  startCountdown('countdown-president', new Date('2025-07-06T16:15:00+02:00'));
+  startCountdown('countdown-grandprix', new Date('2025-07-08T20:45:00+02:00'));
+  </script>
 
 </body>
 </html>
