@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Dashboard Hippodrome de Vincennes</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <img src="assets/logo-idfm.png" alt="IDFM">
+    <img src="assets/logo-ratp.png" alt="RATP">
+    <h1>Hippodrome de Vincennes - Dashboard Mobilité Temps Réel</h1>
+  </header>
+
+  <main>
+    <section class="bloc" id="rer-a">
+      <h2>🚆 RER A – Joinville-le-Pont</h2>
+      <div class="passages" id="rer-a-passages"></div>
+      <div class="alert" id="rer-a-alert"></div>
+    </section>
+
+    <section class="bloc" id="bus-77">
+      <h2>🚌 Bus 77 – Hippodrome de Vincennes</h2>
+      <div class="passages" id="bus-77-passages"></div>
+      <div class="alert" id="bus-77-alert"></div>
+    </section>
+
+    <section class="bloc" id="bus-201">
+      <h2>🚌 Bus 201 – École du Breuil</h2>
+      <div class="passages" id="bus-201-passages"></div>
+      <div class="alert" id="bus-201-alert"></div>
+    </section>
+
+    <section class="bloc" id="velib">
+      <h2>🚲 Vélib’</h2>
+      <div class="velib-status" id="velib-status"></div>
+    </section>
+
+    <section class="bloc" id="traffic">
+      <h2>🚦 Trafic Routier (A86 & Périphérique)</h2>
+      <div class="traffic-status" id="traffic-status"></div>
+    </section>
+
+    <section class="bloc" id="weather">
+      <h2>🌤 Météo</h2>
+      <div class="weather-info" id="weather-info"></div>
+    </section>
+  </main>
+
+  <footer>
+    <p>© 2025 Hippodrome de Vincennes - Données fournies par IDFM, RATP, Vélib’, et data.gouv.</p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
