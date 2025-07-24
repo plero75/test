@@ -1,4 +1,3 @@
-
 document.addEventListener("DOMContentLoaded", () => {
   const dynamicSpans = document.querySelectorAll(".dynamic-switch");
   setInterval(() => {
@@ -17,7 +16,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
       visits.forEach(visit => {
         const mj = visit.MonitoredVehicleJourney;
-        const dir = mj.DirectionName || "Direction inconnue";
+        const dir = typeof mj.DirectionRef === "string"
+          ? mj.DirectionRef.replace("STIF:Direction:", "")
+          : (mj.DirectionRef?.value || mj.DirectionName || "");
+
         const aimed = new Date(mj.MonitoredCall.AimedDepartureTime);
         const expected = new Date(mj.MonitoredCall.ExpectedDepartureTime);
         const now = new Date();
@@ -25,7 +27,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const untilMin = Math.round((expected - now) / 60000);
         const line = mj.PublishedLineName;
 
-        const status = visit.MonitoredCall.DepartureStatus === "cancelled"
+        const status = mj.MonitoredCall.DepartureStatus === "cancelled"
           ? "cancelled"
           : delayMin > 0 ? "delayed" : "onTime";
 
@@ -57,7 +59,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
       });
 
-      // Intégration info trafic via /general-message
+      // Intégration info trafic
       const trafficEndpoint = "https://ratp-proxy.hippodrome-proxy42.workers.dev/?url=https://prim.iledefrance-mobilites.fr/marketplace/general-message";
       fetch(trafficEndpoint)
         .then(res => res.json())
@@ -65,7 +67,7 @@ document.addEventListener("DOMContentLoaded", () => {
           const messages = data.generalMessages || [];
           const rerMsgs = messages.filter(msg =>
             msg.messages[0].channel.type === "Line" &&
-            msg.messages[0].channel.id === "C01742"
+            msg.messages[0].channel.id === "C01742" // ID RER A
           );
           const infoDiv = document.createElement("div");
           infoDiv.className = "alert";
