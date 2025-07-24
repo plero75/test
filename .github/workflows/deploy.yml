@@ -1,4 +1,4 @@
-name: Deploy to Google Apps Script
+name: Deploy Apps Script via CLASP
 
 on:
   push:
@@ -8,22 +8,26 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v2
+      - name: Setup Node.js 20+
+        uses: actions/setup-node@v4
         with:
-          node-version: '14'
+          node-version: '20'
 
-      - name: Install Clasp
+      - name: Debug Node version
+        run: node -v
+
+      - name: Install CLASP
         run: npm install -g @google/clasp
 
-      - name: Authenticate with Google
-        env:
-          CLASP_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
-        run: echo "$CLASP_CREDENTIALS" > ~/.clasprc.json
+      - name: Authenticate with CLASP
+        run: |
+          echo "${{ secrets.CLASP_CREDENTIALS_JSON }}" > .clasprc.json
+          clasp login --creds .clasprc.json || echo "Already logged in or headless"
 
-      - name: Deploy to Google Apps Script
+      - name: Push to Apps Script
         run: clasp push
