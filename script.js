@@ -16,23 +16,24 @@ document.addEventListener("DOMContentLoaded", () => {
 
       visits.forEach(visit => {
         const mj = visit.MonitoredVehicleJourney;
-        const dir = typeof mj.DirectionRef === "string"
-          ? mj.DirectionRef.replace("STIF:Direction:", "")
-          : (mj.DirectionRef?.value || mj.DirectionName || "");
-
+        const dir = mj.DirectionName || mj.DirectionRef || "Direction inconnue";
         const aimed = new Date(mj.MonitoredCall.AimedDepartureTime);
         const expected = new Date(mj.MonitoredCall.ExpectedDepartureTime);
         const now = new Date();
         const delayMin = Math.round((expected - aimed) / 60000);
         const untilMin = Math.round((expected - now) / 60000);
         const line = mj.PublishedLineName;
+        const stops = (mj.MonitoredCall.StopPointRef || "").split(":").pop();
+        const stopName = mj.MonitoredCall.StopPointName || "Gare inconnue";
+        const destinations = (mj.DestinationName || []).join(", ");
+        const stopList = (mj.SituationRef ? [mj.SituationRef] : []).join(", ");
 
-        const status = mj.MonitoredCall.DepartureStatus === "cancelled"
+        const status = visit.MonitoredCall.DepartureStatus === "cancelled"
           ? "cancelled"
           : delayMin > 0 ? "delayed" : "onTime";
 
         if (!directions[dir]) directions[dir] = [];
-        directions[dir].push({ line, aimed, expected, untilMin, delayMin, status });
+        directions[dir].push({ line, aimed, expected, untilMin, delayMin, status, stopName, destinations });
       });
 
       const block = document.querySelector(".line-block");
@@ -48,9 +49,10 @@ document.addEventListener("DOMContentLoaded", () => {
             const expectedStr = dep.expected.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
             const countdown = `⏳ dans ${dep.untilMin} min`;
             const delay = dep.delayMin > 0 ? `⚠️ Retard +${dep.delayMin} min` : "";
+            const destinations = dep.destinations ? `→ ${dep.destinations}` : "";
             const row = `
               <div class="row fade">
-                <span>🕐 ${dep.delayMin > 0 ? `<span class='crossed'>${aimedStr}</span> → ${expectedStr}` : expectedStr}</span>
+                <span>🕐 ${dep.delayMin > 0 ? `<span class='crossed'>${aimedStr}</span> → ${expectedStr}` : expectedStr} ${destinations}</span>
                 <span class="dynamic-switch" data-toggle="countdown" data-countdown="${countdown}" data-delay="${delay || countdown}">${countdown}</span>
                 <span class="status">${dep.status === "onTime" ? "✅ À l'heure" : "⚠️ Retard"}</span>
               </div>`;
@@ -59,30 +61,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
       });
 
-      // Intégration info trafic
-      const trafficEndpoint = "https://ratp-proxy.hippodrome-proxy42.workers.dev/?url=https://prim.iledefrance-mobilites.fr/marketplace/general-message";
-      fetch(trafficEndpoint)
-        .then(res => res.json())
-        .then(data => {
-          const messages = data.generalMessages || [];
-          const rerMsgs = messages.filter(msg =>
-            msg.messages[0].channel.type === "Line" &&
-            msg.messages[0].channel.id === "C01742" // ID RER A
-          );
-          const infoDiv = document.createElement("div");
-          infoDiv.className = "alert";
-          if (rerMsgs.length > 0) {
-            const text = rerMsgs[0].messages[0].text;
-            infoDiv.innerHTML = `⚠️ ${text}`;
-          } else {
-            infoDiv.innerHTML = `✅ Aucun incident signalé`;
-          }
-          document.querySelector(".line-block").appendChild(infoDiv);
-        })
-        .catch(err => {
-          console.warn("Erreur info trafic :", err);
-        });
-
+      block.innerHTML += `<div class="alert">ℹ️ Info trafic non chargée (à intégrer)</div>`;
     })
     .catch(error => console.error("Erreur API PRIM:", error));
 });
