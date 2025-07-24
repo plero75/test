@@ -1,43 +1,62 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
-  <title>Dashboard Transports Hippodrome</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8">
+  <title>Dashboard Transport Hippodrome</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #f4f4f4;
+      padding: 20px;
+    }
+    .station-block {
+      background: #fff;
+      padding: 15px;
+      margin-bottom: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 8px rgba(0,0,0,0.1);
+    }
+    h2 {
+      margin-top: 0;
+    }
+    .train-line {
+      font-weight: bold;
+      margin-top: 10px;
+    }
+    .train-sub {
+      font-size: 0.9em;
+      margin-bottom: 10px;
+    }
+    .blink {
+      animation: blink 1s step-start infinite;
+    }
+    @keyframes blink {
+      50% { opacity: 0; }
+    }
+    .alert {
+      background: #ffe4b3;
+      padding: 5px 10px;
+      margin-top: 10px;
+      border-left: 5px solid orange;
+    }
+    .stops-scroller {
+      font-size: 0.85em;
+      overflow-x: auto;
+      white-space: nowrap;
+      margin-top: 10px;
+      background: #eee;
+      padding: 5px;
+      border-radius: 4px;
+    }
+  </style>
 </head>
 <body>
-  <header>
-    <h1>🚆 Dashboard Transports — Vincennes</h1>
-  </header>
 
-  <main class="grid">
-    <!-- RER A Joinville-le-Pont -->
-    <section id="joinville-rer" class="block">
-      <h2>Joinville-le-Pont (RER A)</h2>
-      <div class="departures"></div>
-    </section>
-<div id="joinville"></div>
-<div id="vincennes"></div>
-<div id="breuil"></div>
-
-    <!-- Bus 77 arrêt Hippodrome de Vincennes -->
-    <section id="hippo-77" class="block">
-      <h2>Bus 77 — Hippodrome</h2>
-      <div class="departures"></div>
-    </section>
-
-    <!-- Bus 201 arrêt École du Breuil -->
-    <section id="breuil-201" class="block">
-      <h2>Bus 201 — École du Breuil</h2>
-      <div class="departures"></div>
-    </section>
-  </main>
-
-  <footer>
-    <p>📍 Données en temps réel – Île-de-France Mobilités</p>
-  </footer>
+  <div id="joinville" class="station-block"></div>
+  <div id="vincennes" class="station-block"></div>
+  <div id="breuil" class="station-block"></div>
 
   <script src="script.js"></script>
+
 </body>
 </html>
