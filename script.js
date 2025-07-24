@@ -16,24 +16,25 @@ document.addEventListener("DOMContentLoaded", () => {
 
       visits.forEach(visit => {
         const mj = visit.MonitoredVehicleJourney;
+        const mc = visit.MonitoredCall;
+        if (!mj || !mc) return;
+
         const dir = mj.DirectionName || mj.DirectionRef || "Direction inconnue";
-        const aimed = new Date(mj.MonitoredCall.AimedDepartureTime);
-        const expected = new Date(mj.MonitoredCall.ExpectedDepartureTime);
+        const aimed = new Date(mc.AimedDepartureTime);
+        const expected = new Date(mc.ExpectedDepartureTime);
         const now = new Date();
         const delayMin = Math.round((expected - aimed) / 60000);
         const untilMin = Math.round((expected - now) / 60000);
         const line = mj.PublishedLineName;
-        const stops = (mj.MonitoredCall.StopPointRef || "").split(":").pop();
-        const stopName = mj.MonitoredCall.StopPointName || "Gare inconnue";
-        const destinations = (mj.DestinationName || []).join(", ");
-        const stopList = (mj.SituationRef ? [mj.SituationRef] : []).join(", ");
+        const destination = mj.DestinationName || "";
+        const journeyId = mj.VehicleJourneyRef;
 
-        const status = visit.MonitoredCall.DepartureStatus === "cancelled"
+        const status = mc.DepartureStatus === "cancelled"
           ? "cancelled"
           : delayMin > 0 ? "delayed" : "onTime";
 
         if (!directions[dir]) directions[dir] = [];
-        directions[dir].push({ line, aimed, expected, untilMin, delayMin, status, stopName, destinations });
+        directions[dir].push({ line, aimed, expected, untilMin, delayMin, status, journeyId, destination });
       });
 
       const block = document.querySelector(".line-block");
@@ -49,10 +50,9 @@ document.addEventListener("DOMContentLoaded", () => {
             const expectedStr = dep.expected.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
             const countdown = `⏳ dans ${dep.untilMin} min`;
             const delay = dep.delayMin > 0 ? `⚠️ Retard +${dep.delayMin} min` : "";
-            const destinations = dep.destinations ? `→ ${dep.destinations}` : "";
             const row = `
               <div class="row fade">
-                <span>🕐 ${dep.delayMin > 0 ? `<span class='crossed'>${aimedStr}</span> → ${expectedStr}` : expectedStr} ${destinations}</span>
+                <span>🕐 ${dep.delayMin > 0 ? `<span class='crossed'>${aimedStr}</span> → ${expectedStr}` : expectedStr}</span>
                 <span class="dynamic-switch" data-toggle="countdown" data-countdown="${countdown}" data-delay="${delay || countdown}">${countdown}</span>
                 <span class="status">${dep.status === "onTime" ? "✅ À l'heure" : "⚠️ Retard"}</span>
               </div>`;
