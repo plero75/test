@@ -2,14 +2,55 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Dashboard Mobilité – RER A</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard Transports — Vincennes</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #0f111a;
+      color: #fff;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+      color: #fff;
+    }
+    .block {
+      background: #1c1f2b;
+      border-radius: 10px;
+      padding: 15px;
+      margin: 20px auto;
+      max-width: 600px;
+    }
+    .alert {
+      background: #444;
+      color: #ffcc00;
+      padding: 10px;
+      border-radius: 5px;
+      margin-top: 10px;
+    }
+    .stop-name {
+      font-size: 1.2em;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+  </style>
 </head>
 <body>
-  <div class="line-block">
-    <div class="header">Chargement des données RER A...</div>
+  <h1>🟢 Dashboard Transports – Hippodrome Vincennes</h1>
+
+  <div id="joinville-rer" class="block">
+    <div class="stop-name">Chargement RER A – Joinville-le-Pont…</div>
   </div>
+
+  <div id="hippo-77" class="block">
+    <div class="stop-name">Chargement Bus 77 – Hippodrome…</div>
+  </div>
+
+  <div id="breuil-201" class="block">
+    <div class="stop-name">Chargement Bus 201 – École du Breuil…</div>
+  </div>
+
   <script src="script.js"></script>
 </body>
 </html>
