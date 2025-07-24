@@ -34,6 +34,11 @@ async function fetchPassages(stop) {
     const response = await fetch(url);
     const data = await response.json();
     const visits = data.Siri.ServiceDelivery.StopMonitoringDelivery[0].MonitoredStopVisit;
+const block = document.getElementById(stop.containerId);
+if (!block) {
+  console.error(`❌ Bloc introuvable pour containerId: ${stop.containerId}`);
+  return;
+}
 
     const block = document.getElementById(stop.containerId);
     block.innerHTML = `<h2>${stop.name}</h2>`;
