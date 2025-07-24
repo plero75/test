@@ -13,7 +13,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Setup Node.js 20+
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
@@ -26,8 +26,7 @@ jobs:
 
       - name: Authenticate with CLASP
         run: |
-          echo "${{ secrets.CLASP_CREDENTIALS_JSON }}" > .clasprc.json
-          clasp login --creds .clasprc.json || echo "Already logged in or headless"
+          echo "${{ secrets.CLASP_CREDENTIALS_JSON }}" > ~/.clasprc.json
 
       - name: Push to Apps Script
         run: clasp push
