@@ -1,84 +1,86 @@
-const lines = [
-  { id: "rer-a", monitoringRef: "STIF:StopArea:SP:43135:", lineRef: "STIF:Line::C00001:" },
-  { id: "bus-77", monitoringRef: "STIF:StopArea:SP:463641:", lineRef: "STIF:Line::C01777:" },
-  { id: "bus-201", monitoringRef: "STIF:StopArea:SP:463644:", lineRef: "STIF:Line::C02101:" },
-];
 
-const proxyBase = "https://ratp-proxy.hippodrome-proxy42.workers.dev/?url=";
-
-async function buildDashboard() {
-  for (const line of lines) {
-    const stopMonitoringUrl = proxyBase + encodeURIComponent(`https://prim.iledefrance-mobilites.fr/marketplace/stop-monitoring?MonitoringRef=${line.monitoringRef}`);
-    const res = await fetch(stopMonitoringUrl);
-    if (!res.ok) { console.error(`Erreur API stop-monitoring pour ${line.id}`); continue; }
-    const data = await res.json();
-    const visits = data.Siri.ServiceDelivery.StopMonitoringDelivery[0].MonitoredStopVisit || [];
-    const directions = {};
-
-    visits.forEach(v => {
-      const dir = v.MonitoredVehicleJourney.DirectionRef.replace(/[:.]/g, "-") || "unk";
-      if (!directions[dir]) directions[dir] = [];
-      directions[dir].push(v);
+document.addEventListener("DOMContentLoaded", () => {
+  const dynamicSpans = document.querySelectorAll(".dynamic-switch");
+  setInterval(() => {
+    dynamicSpans.forEach(span => {
+      span.dataset.toggle = span.dataset.toggle === "delay" ? "countdown" : "delay";
+      span.textContent = span.dataset.toggle === "delay" ? span.dataset.delay : span.dataset.countdown;
     });
+  }, 3000);
 
-    for (const [dir, trips] of Object.entries(directions)) {
-      const containerId = `${line.id}-${dir}`;
-      const container = document.getElementById(containerId);
-      if (!container) continue;
-      container.innerHTML = ""; // reset
+  const endpoint = "https://ratp-proxy.hippodrome-proxy42.workers.dev/?url=https://prim.iledefrance-mobilites.fr/marketplace/stop-monitoring?MonitoringRef=STIF:StopArea:SP:43135:";
+  fetch(endpoint)
+    .then(res => res.json())
+    .then(data => {
+      const visits = data.Siri.ServiceDelivery.StopMonitoringDelivery[0].MonitoredStopVisit || [];
+      const directions = {};
 
-      trips.forEach(async trip => {
-        const aimed = new Date(trip.MonitoredVehicleJourney.MonitoredCall.AimedDepartureTime);
-        const expected = new Date(trip.MonitoredVehicleJourney.MonitoredCall.ExpectedDepartureTime);
-        const diffMin = Math.round((expected - new Date()) / 60000);
-        const dest = trip.MonitoredVehicleJourney.DestinationName;
-        const jpRef = trip.MonitoredVehicleJourney.JourneyPatternRef;
+      visits.forEach(visit => {
+        const mj = visit.MonitoredVehicleJourney;
+        const dir = mj.DirectionName || "Direction inconnue";
+        const aimed = new Date(mj.MonitoredCall.AimedDepartureTime);
+        const expected = new Date(mj.MonitoredCall.ExpectedDepartureTime);
+        const now = new Date();
+        const delayMin = Math.round((expected - aimed) / 60000);
+        const untilMin = Math.round((expected - now) / 60000);
+        const line = mj.PublishedLineName;
 
-        const stops = await fetchStopsForJourney(jpRef);
-        const stopsText = stops ? stops.join(" ➔ ") : "Inconnu";
+        const status = visit.MonitoredCall.DepartureStatus === "cancelled"
+          ? "cancelled"
+          : delayMin > 0 ? "delayed" : "onTime";
 
-        const div = document.createElement("div");
-        div.classList.add("passage");
-        div.innerHTML = `🕒 ${expected.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})} – ${dest} (dans ${diffMin} min)
-        <div class="stops">Dessert : ${stopsText}</div>`;
-        container.appendChild(div);
+        if (!directions[dir]) directions[dir] = [];
+        directions[dir].push({ line, aimed, expected, untilMin, delayMin, status });
       });
-    }
-    fetchAndInjectTraffic(line.lineRef, line.id);
-  }
-}
 
-async function fetchStopsForJourney(journeyPatternRef) {
-  const jpUrl = proxyBase + encodeURIComponent(`https://prim.iledefrance-mobilites.fr/marketplace/journey-patterns/${journeyPatternRef}`);
-  const res = await fetch(jpUrl);
-  if (!res.ok) return null;
-  const jpData = await res.json();
-  return jpData.stopPoints?.map(sp => sp.name);
-}
+      const block = document.querySelector(".line-block");
+      block.innerHTML = `<div class="header">🚇 RER A — Joinville-le-Pont</div>`;
 
-async function fetchAndInjectTraffic(lineRef, containerBaseId) {
-  const trafficUrl = proxyBase + encodeURIComponent(`https://prim.iledefrance-mobilites.fr/marketplace/general-message?LineRef=${lineRef}`);
-  const res = await fetch(trafficUrl);
-  if (!res.ok) return;
-  const data = await res.json();
-  const messages = data.Siri.ServiceDelivery.GeneralMessageDelivery[0].InfoMessage || [];
-  const now = new Date();
+      Object.entries(directions).forEach(([dirName, departures]) => {
+        block.innerHTML += `<div class="direction">🧭 ${dirName}</div>`;
+        departures.slice(0, 4).forEach(dep => {
+          if (dep.status === "cancelled") {
+            block.innerHTML += `<div class="cancelled fade">❌ Départ de ${dep.aimed.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'})} supprimé</div>`;
+          } else {
+            const aimedStr = dep.aimed.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
+            const expectedStr = dep.expected.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
+            const countdown = `⏳ dans ${dep.untilMin} min`;
+            const delay = dep.delayMin > 0 ? `⚠️ Retard +${dep.delayMin} min` : "";
+            const row = `
+              <div class="row fade">
+                <span>🕐 ${dep.delayMin > 0 ? `<span class='crossed'>${aimedStr}</span> → ${expectedStr}` : expectedStr}</span>
+                <span class="dynamic-switch" data-toggle="countdown" data-countdown="${countdown}" data-delay="${delay || countdown}">${countdown}</span>
+                <span class="status">${dep.status === "onTime" ? "✅ À l'heure" : "⚠️ Retard"}</span>
+              </div>`;
+            block.innerHTML += row;
+          }
+        });
+      });
 
-  for (const dir of ["up", "down"]) {
-    const container = document.getElementById(`${containerBaseId}-${dir}`);
-    if (!container) continue;
+      // Intégration info trafic via /general-message
+      const trafficEndpoint = "https://ratp-proxy.hippodrome-proxy42.workers.dev/?url=https://prim.iledefrance-mobilites.fr/marketplace/general-message";
+      fetch(trafficEndpoint)
+        .then(res => res.json())
+        .then(data => {
+          const messages = data.generalMessages || [];
+          const rerMsgs = messages.filter(msg =>
+            msg.messages[0].channel.type === "Line" &&
+            msg.messages[0].channel.id === "C01742"
+          );
+          const infoDiv = document.createElement("div");
+          infoDiv.className = "alert";
+          if (rerMsgs.length > 0) {
+            const text = rerMsgs[0].messages[0].text;
+            infoDiv.innerHTML = `⚠️ ${text}`;
+          } else {
+            infoDiv.innerHTML = `✅ Aucun incident signalé`;
+          }
+          document.querySelector(".line-block").appendChild(infoDiv);
+        })
+        .catch(err => {
+          console.warn("Erreur info trafic :", err);
+        });
 
-    messages.forEach(m => {
-      const start = new Date(m.ValidityPeriod.StartTime);
-      const end = new Date(m.ValidityPeriod.EndTime);
-      if (now >= start && now <= end) {
-        const alertDiv = document.createElement("div");
-        alertDiv.classList.add("traffic-alert");
-        alertDiv.textContent = `⚠️ ${m.Message.Text}`;
-        container.appendChild(alertDiv);
-      }
-    });
-  }
-}
-
-buildDashboard();
+    })
+    .catch(error => console.error("Erreur API PRIM:", error));
+});
