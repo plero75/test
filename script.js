@@ -34,13 +34,12 @@ async function fetchPassages(stop) {
     const response = await fetch(url);
     const data = await response.json();
     const visits = data.Siri.ServiceDelivery.StopMonitoringDelivery[0].MonitoredStopVisit;
-const block = document.getElementById(stop.containerId);
-if (!block) {
-  console.error(`❌ Bloc introuvable pour containerId: ${stop.containerId}`);
-  return;
-}
-
     const block = document.getElementById(stop.containerId);
+    if (!block) {
+      console.error(`❌ Bloc introuvable pour containerId: ${stop.containerId}`);
+      return;
+    }
+
     block.innerHTML = `<h2>${stop.name}</h2>`;
 
     const grouped = {};
@@ -68,8 +67,7 @@ if (!block) {
         const isCancelled = p.status === "cancelled";
         const isImminent = diff < 1.5;
 
-        let line = `<div class="train-line">
-          🕐 `;
+        let line = `<div class="train-line">\n          🕐 `;
         if (isCancelled) {
           line += `<s>${aimed.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</s> ❌ supprimé`;
         } else if (isDelayed) {
