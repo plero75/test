@@ -2,54 +2,38 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
+  <title>Dashboard Transports Hippodrome</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dashboard Transports — Vincennes</title>
-  <style>
-    body {
-      font-family: sans-serif;
-      background: #0f111a;
-      color: #fff;
-      padding: 20px;
-    }
-    h1 {
-      text-align: center;
-      color: #fff;
-    }
-    .block {
-      background: #1c1f2b;
-      border-radius: 10px;
-      padding: 15px;
-      margin: 20px auto;
-      max-width: 600px;
-    }
-    .alert {
-      background: #444;
-      color: #ffcc00;
-      padding: 10px;
-      border-radius: 5px;
-      margin-top: 10px;
-    }
-    .stop-name {
-      font-size: 1.2em;
-      font-weight: bold;
-      margin-bottom: 10px;
-    }
-  </style>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <h1>🟢 Dashboard Transports – Hippodrome Vincennes</h1>
+  <header>
+    <h1>🚆 Dashboard Transports — Vincennes</h1>
+  </header>
 
-  <div id="joinville-rer" class="block">
-    <div class="stop-name">Chargement RER A – Joinville-le-Pont…</div>
-  </div>
+  <main class="grid">
+    <!-- RER A Joinville-le-Pont -->
+    <section id="joinville-rer" class="block">
+      <h2>Joinville-le-Pont (RER A)</h2>
+      <div class="departures"></div>
+    </section>
 
-  <div id="hippo-77" class="block">
-    <div class="stop-name">Chargement Bus 77 – Hippodrome…</div>
-  </div>
+    <!-- Bus 77 arrêt Hippodrome de Vincennes -->
+    <section id="hippo-77" class="block">
+      <h2>Bus 77 — Hippodrome</h2>
+      <div class="departures"></div>
+    </section>
 
-  <div id="breuil-201" class="block">
-    <div class="stop-name">Chargement Bus 201 – École du Breuil…</div>
-  </div>
+    <!-- Bus 201 arrêt École du Breuil -->
+    <section id="breuil-201" class="block">
+      <h2>Bus 201 — École du Breuil</h2>
+      <div class="departures"></div>
+    </section>
+  </main>
+
+  <footer>
+    <p>📍 Données en temps réel – Île-de-France Mobilités</p>
+  </footer>
 
   <script src="script.js"></script>
 </body>
