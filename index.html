@@ -1,25 +1,67 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Dashboard Hippodrome Vincennes</title>
   <style>
-    body { font-family: sans-serif; background: #111; color: #fff; margin: 0; padding: 1rem; }
-    h2 { margin-top: 2rem; color: #ffd700; }
-    .train-line { font-size: 1.4rem; margin-top: 0.5rem; }
-    .train-sub { font-size: 1rem; color: #aaa; }
-    .blink { animation: blink 1s infinite; color: orange; }
-    .alert { background: #333; padding: 0.5rem; margin-top: 1rem; border-left: 4px solid red; }
-    .stops-scroller { margin-top: 1rem; font-size: 0.9rem; overflow-x: auto; white-space: nowrap; }
-    @keyframes blink { 50% { opacity: 0.4; } }
+    body {
+      font-family: sans-serif;
+      background: #1e1e2f;
+      color: white;
+      padding: 1em;
+    }
+    h2, h3 {
+      margin-bottom: 0.2em;
+    }
+    .station-block {
+      background: #2a2a3f;
+      padding: 1em;
+      margin-bottom: 1em;
+      border-radius: 8px;
+    }
+    .train-line {
+      font-weight: bold;
+      margin: 0.3em 0;
+    }
+    .train-sub {
+      font-size: 0.9em;
+      margin-bottom: 0.8em;
+    }
+    .blink {
+      animation: blinker 1.5s linear infinite;
+    }
+    @keyframes blinker {
+      50% { opacity: 0; }
+    }
+    .alert {
+      background: #ffcc00;
+      color: black;
+      padding: 0.5em;
+      margin-top: 0.5em;
+      border-radius: 4px;
+    }
+    .stops-scroller {
+      font-size: 0.8em;
+      opacity: 0.8;
+      white-space: nowrap;
+      overflow-x: auto;
+    }
   </style>
 </head>
 <body>
-  <div id="weather">🌤 Chargement météo…</div>
-  <div id="velib">🚲 Chargement Vélib…</div>
-  <div id="joinville"></div>
-  <div id="vincennes"></div>
-  <div id="breuil"></div>
+  <h1>🟣 Dashboard Hippodrome Paris-Vincennes</h1>
+
+  <div id="joinville" class="station-block"></div>
+  <div id="vincennes" class="station-block"></div>
+  <div id="breuil" class="station-block"></div>
+
+  <h2>Météo</h2>
+  <div id="weather" class="station-block"></div>
+
+  <h2>Vélib’</h2>
+  <div id="velib" class="station-block"></div>
+
   <script src="script.js"></script>
 </body>
 </html>
