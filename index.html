@@ -67,30 +67,40 @@
   <script>
     const monitoringRefs = {
       joinville: {
-        id: "STIF:StopArea:SP:43135:",
-        name: "Joinville-le-Pont"
+        name: "Joinville-le-Pont",
+        refs: [
+          "STIF:StopArea:SP:43135:" // Joinville-le-Pont
+        ]
       },
       hippodrome: {
-        id: "STIF:StopArea:SP:463641:",
-        name: "Hippodrome de Vincennes"
+        name: "Hippodrome de Vincennes",
+        refs: [
+          "STIF:StopArea:SP:463641:"
+        ]
       },
       breuil: {
-        id: "STIF:StopArea:SP:463644:",
-        name: "École du Breuil"
+        name: "École du Breuil",
+        refs: [
+          "STIF:StopArea:SP:463644:"
+        ]
       }
-    }
+    };
 
     async function fetchData(monitoringRef) {
       const proxy = 'https://ratp-proxy.hippodrome-proxy42.workers.dev/?url=';
       const url = `https://prim.iledefrance-mobilites.fr/marketplace/stop-monitoring?MonitoringRef=${monitoringRef}`;
-      const response = await fetch(proxy + encodeURIComponent(url));
-      const data = await response.json();
-      return data.Siri.ServiceDelivery.StopMonitoringDelivery[0];
+      try {
+        const response = await fetch(proxy + encodeURIComponent(url));
+        const data = await response.json();
+        return data.Siri.ServiceDelivery.StopMonitoringDelivery[0];
+      } catch (e) {
+        return null;
+      }
     }
 
     function formatTime(dateStr) {
       const date = new Date(dateStr);
-      return date.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
+      return isNaN(date) ? 'Invalid Date' : date.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
     }
 
     function minutesRemaining(dateStr) {
@@ -99,22 +109,35 @@
       return Math.round((then - now) / 60000);
     }
 
-    function renderDepartures(containerId, title, deliveries) {
+    function renderDepartures(containerId, title, deliveriesList) {
       const el = document.getElementById(containerId);
       el.innerHTML = `<div class="station-title">${title}</div>`;
       const lignes = {};
 
-      deliveries.MonitoredStopVisit.forEach(v => {
-        const dir = v.MonitoredVehicleJourney.DirectionName?.value || '';
-        const line = v.MonitoredVehicleJourney.LineRef?.value || '';
-        const destination = v.MonitoredVehicleJourney.DestinationName?.value || '';
-        const scheduled = v.MonitoredVehicleJourney.MonitoredCall.AimedDepartureTime;
-        const minutes = minutesRemaining(scheduled);
-        const heure = formatTime(scheduled);
+      deliveriesList.forEach(deliveries => {
+        if (!deliveries || !deliveries.MonitoredStopVisit) return;
 
-        const key = `${line} → ${destination}`;
-        if (!lignes[key]) lignes[key] = [];
-        lignes[key].push({heure, minutes});
+        deliveries.MonitoredStopVisit.forEach(v => {
+          const dir = v.MonitoredVehicleJourney.DirectionName?.value || '';
+          const line = v.MonitoredVehicleJourney.LineRef?.value || '';
+          const destination = v.MonitoredVehicleJourney.DestinationName?.value || '';
+          const scheduled = v.MonitoredVehicleJourney.MonitoredCall.AimedDepartureTime;
+          const minutes = minutesRemaining(scheduled);
+          const heure = formatTime(scheduled);
+
+          const key = `${line} → ${destination}`;
+          if (!lignes[key]) lignes[key] = [];
+          lignes[key].push({heure, minutes});
+        });
+
+        if (deliveries?.GeneralMessage) {
+          deliveries.GeneralMessage.forEach(m => {
+            const alert = document.createElement('div');
+            alert.className = 'alert';
+            alert.textContent = '⚠ ' + (m?.InfoMessage?.[0]?.value || 'Perturbation');
+            el.appendChild(alert);
+          });
+        }
       });
 
       Object.entries(lignes).forEach(([dir, passages]) => {
@@ -126,29 +149,20 @@
           const div = document.createElement('div');
           let classe = 'passage';
           if (p.minutes <= 5) classe += ' highlight';
-          else if (p.minutes > 50) classe += ' late';
+          else if (p.minutes > 50 || p.minutes < 0) classe += ' late';
           div.className = classe;
-          div.innerHTML = p.minutes > 50 ? `${p.heure}` : `${p.heure}<br><small>${p.minutes} min</small>`;
+          div.innerHTML = isNaN(p.minutes) ? `Invalid` : `${p.heure}<br><small>${p.minutes} min</small>`;
           grid.appendChild(div);
         });
         block.appendChild(grid);
         el.appendChild(block);
       });
-
-      if (deliveries?.GeneralMessage) {
-        deliveries.GeneralMessage.forEach(m => {
-          const alert = document.createElement('div');
-          alert.className = 'alert';
-          alert.textContent = '⚠ ' + (m?.RecordedAtTime ? m.InfoMessage?.[0]?.value : '');
-          el.appendChild(alert);
-        });
-      }
     }
 
     async function renderAll() {
-      for (const [key, {id, name}] of Object.entries(monitoringRefs)) {
-        const data = await fetchData(id);
-        renderDepartures(key, name, data);
+      for (const [key, {name, refs}] of Object.entries(monitoringRefs)) {
+        const allDeliveries = await Promise.all(refs.map(fetchData));
+        renderDepartures(key, name, allDeliveries);
       }
     }
 
