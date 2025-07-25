@@ -1,196 +1,158 @@
-// script.js complet avec gestion des retards, suppressions, directions, gares desservies, messages de perturbation, météo et Vélib
-const grid = document.createElement("div");
-grid.className = "train-group";
-
-grouped[dir].slice(0, 6).forEach(p => {
-  const aimed = new Date(p.aimed);
-  const expected = new Date(p.expected);
-  const diff = Math.round((expected - new Date()) / 60000);
-  const cell = document.createElement("div");
-  cell.className = "train-cell";
-
-  if (diff < 5) cell.classList.add("soon");
-
-  const timeStr = expected.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-  const relative = diff < 5 ? `⏳ ${diff} min` : diff > 50 ? "" : `${diff} min`;
-
-  cell.innerHTML = `<div>${timeStr}</div><div style="font-size:12px">${relative}</div>`;
-  grid.appendChild(cell);
-});
-block.appendChild(grid);
-
-const stops = [
-  {
-    name: "Joinville-le-Pont",
-    id: "STIF:StopArea:SP:43135:",
-    line: "C01742",
-    containerId: "joinville"
-  },
-  {
-    name: "Hippodrome de Vincennes",
-    id: "STIF:StopArea:SP:463641:",
-    line: "C01219",
-    containerId: "vincennes"
-  },
-  {
-    name: "École du Breuil",
-    id: "STIF:StopArea:SP:463644:",
-    line: "C01219",
-    containerId: "breuil"
-  }
-];
-
-function fetchAndDisplay() {
-  stops.forEach(stop => {
-    fetchPassages(stop);
-  });
-  fetchWeather();
-  fetchVelib();
-}
-
-async function fetchPassages(stop) {
-  const url = `https://ratp-proxy.hippodrome-proxy42.workers.dev/?url=${encodeURIComponent(`https://prim.iledefrance-mobilites.fr/marketplace/stop-monitoring?MonitoringRef=${stop.id}`)}`;
-
-  try {
-    const response = await fetch(url);
-    const data = await response.json();
-    const visits = data.Siri.ServiceDelivery.StopMonitoringDelivery[0].MonitoredStopVisit;
-    const block = document.getElementById(stop.containerId);
-    if (!block) {
-      console.error(`❌ Bloc introuvable pour containerId: ${stop.containerId}`);
-      return;
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard Hippodrome Paris-Vincennes</title>
+  <style>
+    body {
+      background-color: #1e1e2f;
+      color: #fff;
+      font-family: sans-serif;
+      margin: 0;
+      padding: 2rem;
+    }
+    h1 {
+      margin-bottom: 2rem;
+    }
+    .section {
+      margin-bottom: 3rem;
+    }
+    .station-title {
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 1rem;
+    }
+    .passage {
+      padding: 1rem;
+      background-color: #292943;
+      border-radius: 0.5rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .passage.highlight {
+      background-color: #4caf50;
+      color: #000;
+      font-weight: bold;
+    }
+    .passage.late {
+      background-color: #444;
+      color: #aaa;
+    }
+    .alert {
+      background-color: #ffc107;
+      color: #000;
+      padding: 1rem;
+      margin-top: 1rem;
+      border-radius: 0.5rem;
+    }
+    .ligne-title {
+      margin: 1rem 0 0.5rem;
+      font-weight: bold;
+      font-size: 1.2rem;
+    }
+  </style>
+</head>
+<body>
+  <h1>🚉 Dashboard Hippodrome Paris-Vincennes</h1>
+  <div class="section" id="joinville"></div>
+  <div class="section" id="hippodrome"></div>
+  <div class="section" id="breuil"></div>
+  <script>
+    const monitoringRefs = {
+      joinville: {
+        id: "STIF:StopArea:SP:43135:",
+        name: "Joinville-le-Pont"
+      },
+      hippodrome: {
+        id: "STIF:StopArea:SP:463641:",
+        name: "Hippodrome de Vincennes"
+      },
+      breuil: {
+        id: "STIF:StopArea:SP:463644:",
+        name: "École du Breuil"
+      }
     }
 
-    block.innerHTML = `<h2>${stop.name}</h2>`;
+    async function fetchData(monitoringRef) {
+      const proxy = 'https://ratp-proxy.hippodrome-proxy42.workers.dev/?url=';
+      const url = `https://prim.iledefrance-mobilites.fr/marketplace/stop-monitoring?MonitoringRef=${monitoringRef}`;
+      const response = await fetch(proxy + encodeURIComponent(url));
+      const data = await response.json();
+      return data.Siri.ServiceDelivery.StopMonitoringDelivery[0];
+    }
 
-    const grouped = {};
-    visits.forEach(v => {
-      const mvj = v.MonitoredVehicleJourney;
-      const dir = mvj.DirectionRef || mvj.DestinationName?.[0]?.value || "inconnu";
-      if (!grouped[dir]) grouped[dir] = [];
-      grouped[dir].push({
-        aimed: mvj.MonitoredCall?.AimedDepartureTime,
-        expected: mvj.MonitoredCall?.ExpectedDepartureTime,
-        status: mvj.MonitoredCall?.DepartureStatus,
-        destination: mvj.DestinationName?.[0]?.value || mvj.DestinationName || "",
-        stops: mvj.MonitoredCall?.StopPointRef,
-        tripId: mvj.VehicleJourneyRef
-      });
-    });
+    function formatTime(dateStr) {
+      const date = new Date(dateStr);
+      return date.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
+    }
 
-    Object.keys(grouped).forEach(dir => {
-      block.innerHTML += `<h3>${grouped[dir][0].destination}</h3>`;
-      const grid = document.createElement("div");
-      grid.className = "grid-passages";
+    function minutesRemaining(dateStr) {
+      const now = new Date();
+      const then = new Date(dateStr);
+      return Math.round((then - now) / 60000);
+    }
 
-      grouped[dir].slice(0, 4).forEach(p => {
-        if (!p.aimed || !p.expected) return;
+    function renderDepartures(containerId, title, deliveries) {
+      const el = document.getElementById(containerId);
+      el.innerHTML = `<div class="station-title">${title}</div>`;
+      const lignes = {};
 
-        const aimed = new Date(p.aimed);
-        const expected = new Date(p.expected);
-        const now = new Date();
-        const diff = Math.round((expected - now) / 60000);
-        const isDelayed = expected.getTime() !== aimed.getTime();
-        const isCancelled = p.status === "cancelled";
+      deliveries.MonitoredStopVisit.forEach(v => {
+        const dir = v.MonitoredVehicleJourney.DirectionName?.value || '';
+        const line = v.MonitoredVehicleJourney.LineRef?.value || '';
+        const destination = v.MonitoredVehicleJourney.DestinationName?.value || '';
+        const scheduled = v.MonitoredVehicleJourney.MonitoredCall.AimedDepartureTime;
+        const minutes = minutesRemaining(scheduled);
+        const heure = formatTime(scheduled);
 
-        const timeStr = expected.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-        let content = "";
-
-        if (isCancelled) {
-          content = `<div class='train-item cancelled'><s>${timeStr}</s><br>❌ supprimé</div>`;
-        } else if (diff > 50) {
-          content = `<div class='train-item'>${timeStr}</div>`;
-        } else {
-          let detail = diff <= 5 ? `⏱ <strong>${diff} min</strong>` : `⏳ ${diff} min`;
-          content = `<div class='train-item${diff <= 5 ? " highlight" : ""}'>${timeStr}<br>${detail}</div>`;
-        }
-
-        grid.innerHTML += content;
+        const key = `${line} → ${destination}`;
+        if (!lignes[key]) lignes[key] = [];
+        lignes[key].push({heure, minutes});
       });
 
-      block.appendChild(grid);
-    });
+      Object.entries(lignes).forEach(([dir, passages]) => {
+        const block = document.createElement('div');
+        block.innerHTML = `<div class="ligne-title">🚍 ${dir}</div>`;
+        const grid = document.createElement('div');
+        grid.className = 'grid';
+        passages.slice(0, 4).forEach(p => {
+          const div = document.createElement('div');
+          let classe = 'passage';
+          if (p.minutes <= 5) classe += ' highlight';
+          else if (p.minutes > 50) classe += ' late';
+          div.className = classe;
+          div.innerHTML = p.minutes > 50 ? `${p.heure}` : `${p.heure}<br><small>${p.minutes} min</small>`;
+          grid.appendChild(div);
+        });
+        block.appendChild(grid);
+        el.appendChild(block);
+      });
 
-    await fetchTrafficMessages(stop.line, block);
-    await fetchStopsServed(stop.id, block);
-  } catch (err) {
-    console.error("Erreur API PRIM:", err);
-  }
-}
-
-async function fetchTrafficMessages(lineId, container) {
-  const url = `https://ratp-proxy.hippodrome-proxy42.workers.dev/?url=${encodeURIComponent(`https://prim.iledefrance-mobilites.fr/marketplace/general-message?LineRef=STIF:Line::${lineId}:`)}`;
-  try {
-    const response = await fetch(url);
-    const data = await response.json();
-    const messages = data?.Siri?.ServiceDelivery?.GeneralMessageDelivery?.[0]?.InfoMessage || [];
-
-    messages.forEach(msg => {
-      const shortMsg = msg.Content?.Message?.find(m => m.MessageType === "SHORT_MESSAGE");
-      if (shortMsg) {
-        const alertDiv = document.createElement("div");
-        alertDiv.className = "alert";
-        alertDiv.textContent = `⚠️ ${shortMsg.MessageText.value}`;
-        container.appendChild(alertDiv);
+      if (deliveries?.GeneralMessage) {
+        deliveries.GeneralMessage.forEach(m => {
+          const alert = document.createElement('div');
+          alert.className = 'alert';
+          alert.textContent = '⚠ ' + (m?.RecordedAtTime ? m.InfoMessage?.[0]?.value : '');
+          el.appendChild(alert);
+        });
       }
-    });
-  } catch (error) {
-    console.error("Erreur lors de la récupération des messages trafic :", error);
-    const fallback = document.createElement("div");
-    fallback.className = "alert";
-    fallback.textContent = `ℹ️ Info trafic non chargée (à intégrer)`;
-    container.appendChild(fallback);
-  }
-}
+    }
 
-async function fetchStopsServed(monitoringRef, container) {
-  const vehicleUrl = `https://ratp-proxy.hippodrome-proxy42.workers.dev/?url=${encodeURIComponent(`https://prim.iledefrance-mobilites.fr/marketplace/stop-monitoring?MonitoringRef=${monitoringRef}`)}`;
-  try {
-    const response = await fetch(vehicleUrl);
-    const data = await response.json();
-    const vehicleRef = data?.Siri?.ServiceDelivery?.StopMonitoringDelivery?.[0]?.MonitoredStopVisit?.[0]?.MonitoredVehicleJourney?.VehicleJourneyRef;
-    if (!vehicleRef) return;
+    async function renderAll() {
+      for (const [key, {id, name}] of Object.entries(monitoringRefs)) {
+        const data = await fetchData(id);
+        renderDepartures(key, name, data);
+      }
+    }
 
-    const journeyUrl = `https://ratp-proxy.hippodrome-proxy42.workers.dev/?url=${encodeURIComponent(`https://prim.iledefrance-mobilites.fr/marketplace/v2/navitia/vehicle_journeys/${vehicleRef}`)}`;
-    const jRes = await fetch(journeyUrl);
-    const jData = await jRes.json();
-    const stopTimes = jData.vehicle_journeys?.[0]?.stop_times || [];
-
-    const stopsList = stopTimes.map(s => s.stop_point.name).join(" – ");
-    const stopsDiv = document.createElement("div");
-    stopsDiv.className = "stops-scroller";
-    stopsDiv.textContent = stopsList;
-    container.appendChild(stopsDiv);
-  } catch (error) {
-    console.warn("Erreur lors de la récupération des arrêts desservis :", error);
-  }
-}
-
-async function fetchWeather() {
-  const container = document.getElementById("weather");
-  if (!container) return;
-  try {
-    const res = await fetch("https://api.open-meteo.com/v1/forecast?latitude=48.83&longitude=2.44&current_weather=true");
-    const data = await res.json();
-    const weather = data.current_weather;
-    container.innerHTML = `🌤 ${weather.temperature}°C – Vent ${weather.windspeed} km/h`;
-  } catch (e) {
-    container.innerHTML = "🌦 Météo indisponible";
-  }
-}
-
-async function fetchVelib() {
-  const container = document.getElementById("velib");
-  if (!container) return;
-  try {
-    const res = await fetch("https://velib-metropole-opendata.smoove.pro/opendata/Velib_Metropole/station_information.json");
-    const info = await res.json();
-    const stationIds = ["12123", "12124"];
-    const stations = info.data.stations.filter(s => stationIds.includes(s.station_id));
-    container.innerHTML = stations.map(s => `🚲 ${s.name}`).join("<br>");
-  } catch (e) {
-    container.innerHTML = "🚲 Vélib indisponible";
-  }
-}
-
-document.addEventListener("DOMContentLoaded", fetchAndDisplay);
+    renderAll();
+  </script>
+</body>
+</html>
