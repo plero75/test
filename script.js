@@ -1,4 +1,23 @@
 // script.js complet avec gestion des retards, suppressions, directions, gares desservies, messages de perturbation, météo et Vélib
+const grid = document.createElement("div");
+grid.className = "train-group";
+
+grouped[dir].slice(0, 6).forEach(p => {
+  const aimed = new Date(p.aimed);
+  const expected = new Date(p.expected);
+  const diff = Math.round((expected - new Date()) / 60000);
+  const cell = document.createElement("div");
+  cell.className = "train-cell";
+
+  if (diff < 5) cell.classList.add("soon");
+
+  const timeStr = expected.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+  const relative = diff < 5 ? `⏳ ${diff} min` : diff > 50 ? "" : `${diff} min`;
+
+  cell.innerHTML = `<div>${timeStr}</div><div style="font-size:12px">${relative}</div>`;
+  grid.appendChild(cell);
+});
+block.appendChild(grid);
 
 const stops = [
   {
