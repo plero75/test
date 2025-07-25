@@ -1,69 +1,17 @@
+
 <!DOCTYPE html>
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dashboard Hippodrome Paris-Vincennes</title>
-  <style>
-    body {
-      background-color: #1e1e2f;
-      color: #fff;
-      font-family: sans-serif;
-      margin: 0;
-      padding: 2rem;
-    }
-    h1 {
-      margin-bottom: 2rem;
-    }
-    .section {
-      margin-bottom: 3rem;
-    }
-    .station-title {
-      font-size: 1.5rem;
-      margin-bottom: 1rem;
-    }
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 1rem;
-    }
-    .passage {
-      padding: 1rem;
-      background-color: #292943;
-      border-radius: 0.5rem;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-    }
-    .passage.highlight {
-      background-color: #4caf50;
-      color: #000;
-      font-weight: bold;
-    }
-    .passage.late {
-      background-color: #444;
-      color: #aaa;
-    }
-    .alert {
-      background-color: #ffc107;
-      color: #000;
-      padding: 1rem;
-      margin-top: 1rem;
-      border-radius: 0.5rem;
-    }
-    .ligne-title {
-      margin: 1rem 0 0.5rem;
-      font-weight: bold;
-      font-size: 1.2rem;
-    }
-  </style>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h1>🚉 Dashboard Hippodrome Paris-Vincennes</h1>
-  <div class="section" id="joinville"></div>
-  <div class="section" id="hippodrome"></div>
-  <div class="section" id="breuil"></div>
+  <div class="weather" id="weather"></div>
+  <div class="news-ticker" id="newsTicker"></div>
+  <h1>🚇 Dashboard Hippodrome Paris-Vincennes</h1>
+  <div class="dashboard" id="dashboard"></div>
   <script src="script.js"></script>
 </body>
-</html> 
+</html>
