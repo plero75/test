@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dashboard Hippodrome Paris-Vincennes</title>
   <style>
     body {
@@ -45,11 +45,6 @@
       background-color: #444;
       color: #aaa;
     }
-    .passage.cancelled {
-      background-color: #ff5252;
-      color: white;
-      text-decoration: line-through;
-    }
     .alert {
       background-color: #ffc107;
       color: #000;
@@ -61,51 +56,31 @@
       margin: 1rem 0 0.5rem;
       font-weight: bold;
       font-size: 1.2rem;
-      color: #00bcd4;
-    }
-    .ligne-title img {
-      height: 20px;
-      vertical-align: middle;
-      margin-right: 5px;
-    }
-    #weather {
-      font-size: 1rem;
-      margin-bottom: 2rem;
-      background: #333;
-      padding: 1rem;
-      border-radius: 0.5rem;
     }
   </style>
 </head>
 <body>
   <h1>🚉 Dashboard Hippodrome Paris-Vincennes</h1>
-  <div id="weather">🌤️ Chargement de la météo...</div>
   <div class="section" id="joinville"></div>
   <div class="section" id="hippodrome"></div>
   <div class="section" id="breuil"></div>
-
   <script>
     const monitoringRefs = {
       joinville: {
         name: "Joinville-le-Pont",
-        refs: [
-          "STIF:StopArea:SP:43135:",
-          "STIF:StopArea:SP:463646:",
-          "STIF:StopArea:SP:463643:",
-          "STIF:StopArea:SP:C02251:", "STIF:StopArea:SP:C01130:", "STIF:StopArea:SP:C01135:",
-          "STIF:StopArea:SP:C01137:", "STIF:StopArea:SP:C01139:", "STIF:StopArea:SP:C01141:",
-          "STIF:StopArea:SP:C01219:", "STIF:StopArea:SP:C01260:", "STIF:StopArea:SP:C01399:"
-        ]
+        refs: ["STIF:StopArea:SP:43135:"]
       },
       hippodrome: {
         name: "Hippodrome de Vincennes",
-        refs: ["STIF:StopArea:SP:463642:"]
+        refs: ["STIF:StopArea:SP:463641:"]
       },
       breuil: {
         name: "École du Breuil",
-        refs: ["STIF:StopArea:SP:463645:"]
+        refs: ["STIF:StopArea:SP:463644:"]
       }
     };
+
+    const lignesJoinville = ["C02251", "C01130", "C01135", "C01137", "C01139", "C01141", "C01219", "C01260", "C01399"];
 
     async function fetchData(monitoringRef) {
       const proxy = 'https://ratp-proxy.hippodrome-proxy42.workers.dev/?url=';
@@ -142,15 +117,17 @@
           const dir = v.MonitoredVehicleJourney.DirectionName?.value || '';
           const line = v.MonitoredVehicleJourney.LineRef?.value || '';
           const destination = v.MonitoredVehicleJourney.DestinationName?.value || '';
+
+          // Filtrage des lignes pour Joinville uniquement
+          if (containerId === 'joinville' && !lignesJoinville.includes(line)) return;
+
           const scheduled = v.MonitoredVehicleJourney.MonitoredCall.AimedDepartureTime;
-          const status = v.MonitoredVehicleJourney.MonitoredCall.DepartureStatus || '';
-          const delay = v.MonitoredVehicleJourney.MonitoredCall.ArrivalProximityText || '';
           const minutes = minutesRemaining(scheduled);
           const heure = formatTime(scheduled);
 
           const key = `${line} → ${destination}`;
           if (!lignes[key]) lignes[key] = [];
-          lignes[key].push({heure, minutes, status});
+          lignes[key].push({heure, minutes});
         });
 
         if (deliveries?.GeneralMessage) {
@@ -171,8 +148,7 @@
         passages.slice(0, 4).forEach(p => {
           const div = document.createElement('div');
           let classe = 'passage';
-          if (p.status === 'cancelled') classe += ' cancelled';
-          else if (p.minutes <= 5) classe += ' highlight';
+          if (p.minutes <= 5) classe += ' highlight';
           else if (p.minutes > 50 || p.minutes < 0) classe += ' late';
           div.className = classe;
           div.innerHTML = isNaN(p.minutes) ? `Invalid` : `${p.heure}<br><small>${p.minutes} min</small>`;
@@ -190,20 +166,8 @@
       }
     }
 
-    async function getWeather() {
-      try {
-        const res = await fetch("https://wttr.in/Paris?format=1");
-        const text = await res.text();
-        document.getElementById("weather").textContent = `🌤️ Météo Paris : ${text.trim()}`;
-      } catch (e) {
-        document.getElementById("weather").textContent = "🌤️ Météo indisponible.";
-      }
-    }
-
     renderAll();
-    getWeather();
     setInterval(renderAll, 30000);
-    setInterval(getWeather, 1800000);
   </script>
 </body>
 </html>
