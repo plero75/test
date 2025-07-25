@@ -1,120 +1,54 @@
-const monitoringRefs = {
-  joinville: {
-    name: "Joinville-le-Pont",
-    refs: ["STIF:StopArea:SP:43135:"]
-  },
-  hippodrome: {
-    name: "Hippodrome de Vincennes",
-    refs: ["STIF:StopArea:SP:463641:"]
-  },
-  breuil: {
-    name: "École du Breuil",
-    refs: ["STIF:StopArea:SP:463644:"]
-  }
-};
 
-const lignesJoinville = [
-  "C02251", "C01130", "C01135", "C01137", "C01139", "C01141", "C01219", "C01260", "C01399"
-];
-const lignesBreuil = ["C02251", "C01219"];
+const proxyUrl='https://ratp-proxy.hippodrome-proxy42.workers.dev';
+const stops=[{id:'IDFM:70640',name:'Joinville-le-Pont',lines:['C01742','C02251','C01219']},{id:'IDFM:463642',name:'Hippodrome de Vincennes',lines:['C02251']},{id:'IDFM:463645',name:'École du Breuil',lines:['C01219']}];
+const dashboard=document.getElementById('dashboard');
 
-async function fetchData(monitoringRef) {
-  const proxy = 'https://ratp-proxy.hippodrome-proxy42.workers.dev/?url=';
-  const url = `https://prim.iledefrance-mobilites.fr/marketplace/stop-monitoring?MonitoringRef=${monitoringRef}`;
-  try {
-    const response = await fetch(proxy + encodeURIComponent(url));
-    const data = await response.json();
-    return data.Siri.ServiceDelivery.StopMonitoringDelivery[0];
-  } catch (e) {
-    return null;
+async function fetchData(stop){
+  try{
+    const res=await fetch(`${proxyUrl}/?url=https://prim.iledefrance-mobilites.fr/marketplace/stop-monitoring?MonitoringRef=${stop.id}`);
+    const data=await res.json();
+    localStorage.setItem(`stop-${stop.id}`,JSON.stringify(data));
+    return data.Siri.ServiceDelivery.StopMonitoringDelivery[0].MonitoredStopVisit||[];
+  }catch(e){
+    const data=localStorage.getItem(`stop-${stop.id}`);
+    return data?JSON.parse(data).Siri.ServiceDelivery.StopMonitoringDelivery[0].MonitoredStopVisit:[];
   }
 }
 
-function formatTime(dateStr) {
-  const date = new Date(dateStr);
-  return isNaN(date) ? '❌' : date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-}
-
-function minutesRemaining(dateStr) {
-  const now = new Date();
-  const then = new Date(dateStr);
-  return Math.round((then - now) / 60000);
-}
-
-function renderDepartures(containerId, title, deliveriesList) {
-  const el = document.getElementById(containerId);
-  el.innerHTML = `<div class="station-title">${title}</div>`;
-  const lignes = {};
-
-  deliveriesList.forEach(deliveries => {
-    if (!deliveries?.MonitoredStopVisit) return;
-
-    deliveries.MonitoredStopVisit.forEach(v => {
-      const journey = v.MonitoredVehicleJourney;
-      const line = journey.LineRef?.value || '';
-      const dest = journey.DestinationName?.value || '';
-      const scheduled = journey.MonitoredCall?.AimedDepartureTime;
-      const status = journey.MonitoredCall?.DepartureStatus || '';
-      const delay = journey.MonitoredCall?.DepartureStatus === 'cancelled' ? '❌ Supprimé' : '';
-
-      const minutes = minutesRemaining(scheduled);
-      const heure = formatTime(scheduled);
-
-      // Appliquer le bon filtre pour Joinville et Breuil
-      if (containerId === 'joinville' && !lignesJoinville.includes(line)) return;
-      if (containerId === 'breuil' && !lignesBreuil.includes(line)) return;
-
-      const key = `${line} → ${dest}`;
-      if (!lignes[key]) lignes[key] = [];
-      lignes[key].push({ heure, minutes, status });
+async function buildDashboard(){
+  dashboard.innerHTML='';
+  for(const stop of stops){
+    const data=await fetchData(stop);
+    const block=document.createElement('div');
+    block.className='station';
+    block.innerHTML=`<h2>${stop.name}</h2>`;
+    data.slice(0,4).forEach(v=>{
+      const aimed=v.MonitoredVehicleJourney.MonitoredCall.AimedDepartureTime;
+      const time=new Date(aimed).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+      const mins=Math.round((new Date(aimed)-new Date())/60000);
+      const cls=mins<5?'imminent':mins<15?'delayed':'late';
+      const line=v.MonitoredVehicleJourney.LineRef.value.split(':').pop();
+      block.innerHTML+=`<div class="line-block"><img src="icons/${line}.png" width="30"/><div class="time-box ${cls}">${time} ⏱ ${mins} min</div></div>`;
     });
-
-    if (deliveries?.GeneralMessage) {
-      deliveries.GeneralMessage.forEach(m => {
-        const alert = document.createElement('div');
-        alert.className = 'alert';
-        alert.textContent = '⚠ ' + (m?.InfoMessage?.[0]?.value || 'Perturbation');
-        el.appendChild(alert);
-      });
-    }
-  });
-
-  Object.entries(lignes).forEach(([dir, passages]) => {
-    const block = document.createElement('div');
-    block.innerHTML = `<div class="ligne-title">🚍 ${dir}</div>`;
-    const grid = document.createElement('div');
-    grid.className = 'grid';
-
-    passages.slice(0, 4).forEach(p => {
-      const div = document.createElement('div');
-      let classe = 'passage';
-      if (p.status === 'cancelled') {
-        classe += ' late';
-        div.innerHTML = `<b>${p.heure}</b><br><small>❌ supprimé</small>`;
-      } else if (p.minutes <= 5 && p.minutes >= 0) {
-        classe += ' highlight';
-        div.innerHTML = `<b>${p.heure}</b><br><small>${p.minutes} min</small>`;
-      } else if (p.minutes > 50 || p.minutes < 0) {
-        classe += ' late';
-        div.innerHTML = `<b>${p.heure}</b>`;
-      } else {
-        div.innerHTML = `<b>${p.heure}</b><br><small>${p.minutes} min</small>`;
-      }
-      div.className = classe;
-      grid.appendChild(div);
-    });
-
-    block.appendChild(grid);
-    el.appendChild(block);
-  });
-}
-
-async function renderAll() {
-  for (const [key, { name, refs }] of Object.entries(monitoringRefs)) {
-    const deliveries = await Promise.all(refs.map(fetchData));
-    renderDepartures(key, name, deliveries);
+    dashboard.appendChild(block);
   }
 }
 
-renderAll();
-setInterval(renderAll, 30000);
+async function fetchWeather(){
+  const res=await fetch('https://api.open-meteo.com/v1/forecast?latitude=48.847&longitude=2.439&current_weather=true');
+  const data=await res.json();
+  document.getElementById('weather').innerText=`🌤 ${data.current_weather.temperature}°C`;
+}
+
+async function fetchNews(){
+  const res=await fetch(`${proxyUrl}/?url=https://www.francetvinfo.fr/titres.rss`);
+  const txt=await res.text();
+  const rss=(new DOMParser()).parseFromString(txt,'text/xml');
+  const items=rss.querySelectorAll('item');
+  document.getElementById('newsTicker').innerText=[...items].slice(0,5).map(el=>el.querySelector('title').textContent).join(' • ');
+}
+
+buildDashboard();fetchWeather();fetchNews();
+setInterval(buildDashboard,60000);
+setInterval(fetchWeather,1800000);
+setInterval(fetchNews,300000);
