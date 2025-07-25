@@ -3,65 +3,124 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Dashboard Hippodrome Vincennes</title>
+  <title>Dashboard Hippodrome Paris-Vincennes</title>
   <style>
     body {
-      font-family: sans-serif;
       background: #1e1e2f;
       color: white;
-      padding: 1em;
+      font-family: sans-serif;
+      padding: 20px;
     }
-    h2, h3 {
-      margin-bottom: 0.2em;
+
+    h1 {
+      font-size: 1.6em;
+      margin-bottom: 1rem;
     }
-    .station-block {
-      background: #2a2a3f;
-      padding: 1em;
-      margin-bottom: 1em;
+
+    .bloc {
+      background-color: #2c2c3f;
       border-radius: 8px;
+      padding: 1rem;
+      margin-bottom: 1.5rem;
     }
-    .train-line {
+
+    .train-group {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+      gap: 0.5rem;
+      margin-top: 0.5rem;
+    }
+
+    .train-cell {
+      background: #444;
+      border-radius: 6px;
+      padding: 8px;
+      text-align: center;
+      font-size: 14px;
+    }
+
+    .train-cell.soon {
+      background-color: #117733;
       font-weight: bold;
-      margin: 0.3em 0;
     }
-    .train-sub {
-      font-size: 0.9em;
-      margin-bottom: 0.8em;
+
+    .train-cell.late {
+      background-color: #aa0000;
     }
-    .blink {
-      animation: blinker 1.5s linear infinite;
+
+    .train-cell > div:first-child {
+      font-size: 16px;
+      font-weight: bold;
     }
-    @keyframes blinker {
-      50% { opacity: 0; }
-    }
-    .alert {
-      background: #ffcc00;
-      color: black;
-      padding: 0.5em;
-      margin-top: 0.5em;
-      border-radius: 4px;
-    }
-    .stops-scroller {
-      font-size: 0.8em;
-      opacity: 0.8;
-      white-space: nowrap;
-      overflow-x: auto;
+
+    @media screen and (max-width: 600px) {
+      .train-group {
+        grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
+      }
+
+      .train-cell {
+        font-size: 12px;
+      }
     }
   </style>
 </head>
 <body>
-  <h1>🟣 Dashboard Hippodrome Paris-Vincennes</h1>
+  <h1>🚉 Dashboard Hippodrome Paris-Vincennes</h1>
 
-  <div id="joinville" class="station-block"></div>
-  <div id="vincennes" class="station-block"></div>
-  <div id="breuil" class="station-block"></div>
+  <div class="bloc" id="joinville">
+    <h2>Joinville-le-Pont</h2>
+    <div id="joinville-content"></div>
+  </div>
 
-  <h2>Météo</h2>
-  <div id="weather" class="station-block"></div>
+  <script>
+    // Exemple de données simulées
+    const mockDepartures = {
+      "Cergy le Haut": [
+        { heure: "12:48", minutes: 3 },
+        { heure: "13:03", minutes: 18 },
+        { heure: "13:18", minutes: 33 },
+        { heure: "13:33", minutes: 48 },
+        { heure: "14:48", minutes: 63 },
+      ],
+      "Boissy-Saint-Léger": [
+        { heure: "12:55", minutes: 10 },
+        { heure: "13:10", minutes: 25 },
+        { heure: "13:25", minutes: 40 },
+        { heure: "13:50", minutes: 65 }
+      ]
+    };
 
-  <h2>Vélib’</h2>
-  <div id="velib" class="station-block"></div>
+    const container = document.getElementById("joinville-content");
 
-  <script src="script.js"></script>
+    Object.entries(mockDepartures).forEach(([direction, trains]) => {
+      const title = document.createElement("div");
+      title.innerHTML = `<strong>${direction}</strong>`;
+      container.appendChild(title);
+
+      const group = document.createElement("div");
+      group.className = "train-group";
+
+      trains.forEach(train => {
+        const cell = document.createElement("div");
+        cell.className = "train-cell";
+
+        if (train.minutes < 5) {
+          cell.classList.add("soon");
+        } else if (train.minutes > 50) {
+          cell.innerHTML = `<div>${train.heure}</div><div>🕐</div>`;
+          group.appendChild(cell);
+          return;
+        }
+
+        cell.innerHTML = `
+          <div>${train.heure}</div>
+          <div>${train.minutes} min</div>
+        `;
+        group.appendChild(cell);
+      });
+
+      container.appendChild(group);
+    });
+  </script>
 </body>
 </html>
