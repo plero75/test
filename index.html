@@ -2,73 +2,22 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Dashboard Transports – Hippodrome Vincennes</title>
+  <title>Dashboard Hippodrome Vincennes</title>
   <style>
-    body {
-      font-family: sans-serif;
-      background: #f6f6f6;
-      padding: 1em;
-    }
-
-    .stop-block {
-      background: #fff;
-      padding: 1em;
-      border-radius: 10px;
-      margin-bottom: 1em;
-      box-shadow: 0 0 4px rgba(0,0,0,0.1);
-    }
-
-    h2 {
-      margin-bottom: 0.5em;
-    }
-
-    .train-line {
-      font-weight: bold;
-      margin-top: 0.3em;
-    }
-
-    .train-sub {
-      font-size: 0.9em;
-      color: #555;
-      margin-bottom: 0.6em;
-    }
-
-    .blink {
-      animation: blink 1s infinite;
-      color: #e67e22;
-    }
-
-    @keyframes blink {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0; }
-    }
-
-    .alert {
-      background: #ffe5b4;
-      padding: 0.5em;
-      border-left: 5px solid orange;
-      margin-top: 0.5em;
-    }
-
-    .stops-scroller {
-      white-space: nowrap;
-      overflow-x: auto;
-      font-size: 0.9em;
-      margin-top: 0.5em;
-      padding-bottom: 0.3em;
-      color: #444;
-    }
+    body { font-family: sans-serif; background: #f5f5f5; padding: 1em; }
+    h2, h3 { margin: 0.5em 0; }
+    .train-line, .train-sub, .alert, .stops-scroller { margin: 0.2em 0; }
+    .train-sub { font-size: 0.9em; color: #555; }
+    .alert { background: #fde9c9; padding: 5px; border-left: 4px solid #f90; }
+    .stops-scroller { white-space: nowrap; overflow-x: auto; font-size: 0.85em; color: #333; }
   </style>
 </head>
 <body>
-
-  <div id="joinville" class="stop-block"></div>
-  <div id="vincennes" class="stop-block"></div>
-  <div id="breuil" class="stop-block"></div>
-
-  <div id="weather" class="stop-block"></div>
-  <div id="velib" class="stop-block"></div>
-
+  <div id="joinville"><h2>Joinville-le-Pont</h2></div>
+  <div id="vincennes"><h2>Hippodrome de Vincennes</h2></div>
+  <div id="breuil"><h2>École du Breuil</h2></div>
+  <div id="weather"></div>
+  <div id="velib"></div>
   <script src="script.js"></script>
 </body>
 </html>
