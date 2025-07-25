@@ -35,7 +35,7 @@ async function fetchPassages(stop) {
   try {
     const response = await fetch(url);
     const data = await response.json();
-    const visits = data.Siri.ServiceDelivery.StopMonitoringDelivery[0].MonitoredStopVisit;
+    const visits = data?.Siri?.ServiceDelivery?.StopMonitoringDelivery?.[0]?.MonitoredStopVisit || [];
     const block = document.getElementById(stop.containerId);
     if (!block) {
       console.error(`❌ Bloc introuvable pour containerId: ${stop.containerId}`);
@@ -43,6 +43,12 @@ async function fetchPassages(stop) {
     }
 
     block.innerHTML = `<h2>${stop.name}</h2>`;
+
+    if (visits.length === 0) {
+      block.innerHTML += `<div class="train-sub">⚠️ Aucun passage prévu dans l'immédiat</div>`;
+      await fetchTrafficMessages(stop.line, block);
+      return;
+    }
 
     const grouped = {};
     visits.forEach(v => {
