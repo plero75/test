@@ -63,3 +63,24 @@ body {
   font-style: italic;
   padding: 6px 0;
 }
+
+.train-group {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.train-cell {
+  background: #222;
+  border-radius: 8px;
+  padding: 6px;
+  text-align: center;
+  font-size: 14px;
+}
+.train-cell.soon {
+  background-color: #004d00;
+  color: white;
+  font-weight: bold;
+}
+
