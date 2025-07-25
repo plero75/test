@@ -4,20 +4,22 @@
   <meta charset="UTF-8">
   <title>Dashboard Hippodrome Vincennes</title>
   <style>
-    body { font-family: sans-serif; background: #f5f5f5; padding: 1em; }
-    h2, h3 { margin: 0.5em 0; }
-    .train-line, .train-sub, .alert, .stops-scroller { margin: 0.2em 0; }
-    .train-sub { font-size: 0.9em; color: #555; }
-    .alert { background: #fde9c9; padding: 5px; border-left: 4px solid #f90; }
-    .stops-scroller { white-space: nowrap; overflow-x: auto; font-size: 0.85em; color: #333; }
+    body { font-family: sans-serif; background: #111; color: #fff; margin: 0; padding: 1rem; }
+    h2 { margin-top: 2rem; color: #ffd700; }
+    .train-line { font-size: 1.4rem; margin-top: 0.5rem; }
+    .train-sub { font-size: 1rem; color: #aaa; }
+    .blink { animation: blink 1s infinite; color: orange; }
+    .alert { background: #333; padding: 0.5rem; margin-top: 1rem; border-left: 4px solid red; }
+    .stops-scroller { margin-top: 1rem; font-size: 0.9rem; overflow-x: auto; white-space: nowrap; }
+    @keyframes blink { 50% { opacity: 0.4; } }
   </style>
 </head>
 <body>
-  <div id="joinville"><h2>Joinville-le-Pont</h2></div>
-  <div id="vincennes"><h2>Hippodrome de Vincennes</h2></div>
-  <div id="breuil"><h2>École du Breuil</h2></div>
-  <div id="weather"></div>
-  <div id="velib"></div>
+  <div id="weather">🌤 Chargement météo…</div>
+  <div id="velib">🚲 Chargement Vélib…</div>
+  <div id="joinville"></div>
+  <div id="vincennes"></div>
+  <div id="breuil"></div>
   <script src="script.js"></script>
 </body>
 </html>
