@@ -1,6 +1,4 @@
-<<<<<<< HEAD
-
-const proxyUrl='https://ratp-proxy.hippodrome-proxy42.workers.dev';
+  const proxyUrl='https://ratp-proxy.hippodrome-proxy42.workers.dev';
 const stops=[{id:'IDFM:70640',name:'Joinville-le-Pont',lines:['C01742','C02251','C01219']},{id:'IDFM:463642',name:'Hippodrome de Vincennes',lines:['C02251']},{id:'IDFM:463645',name:'École du Breuil',lines:['C01219']}];
 const dashboard=document.getElementById('dashboard');
 
