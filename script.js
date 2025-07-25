@@ -1,103 +1,122 @@
-const monitoringRefs = {
-  joinville: {
-    name: "Joinville-le-Pont",
-    refs: ["STIF:StopArea:SP:43135:"]
+const proxy = 'https://ratp-proxy.hippodrome-proxy42.workers.dev/?url=';
+
+// Arrêts par station
+const stops = {
+  'Joinville-le-Pont': {
+    id: 'STIF:StopArea:SP:43135:',
+    lines: ['C01742', 'C02251', 'C01130', 'C01135', 'C01137', 'C01139', 'C01141', 'C01219', 'C01260', 'C01399']
   },
-  hippodrome: {
-    name: "Hippodrome de Vincennes",
-    refs: ["STIF:StopArea:SP:463641:"]
+  'Hippodrome de Vincennes': {
+    id: 'STIF:StopArea:SP:463641:',
+    lines: ['C02251']
   },
-  breuil: {
-    name: "École du Breuil",
-    refs: ["STIF:StopArea:SP:463644:"]
+  'École du Breuil': {
+    id: 'STIF:StopArea:SP:463644:',
+    lines: ['C02251', 'C01219']
   }
 };
 
-const lignesJoinville = ["C02251", "C01130", "C01135", "C01137", "C01139", "C01141", "C01219", "C01260", "C01399"];
-
-async function fetchData(monitoringRef) {
-  const proxy = 'https://ratp-proxy.hippodrome-proxy42.workers.dev/?url=';
-  const url = `https://prim.iledefrance-mobilites.fr/marketplace/stop-monitoring?MonitoringRef=${monitoringRef}`;
+// Affichage météo (simple exemple via open-meteo)
+async function fetchWeather() {
   try {
-    const response = await fetch(proxy + encodeURIComponent(url));
-    const data = await response.json();
-    return data.Siri.ServiceDelivery.StopMonitoringDelivery[0];
+    const res = await fetch('https://api.open-meteo.com/v1/forecast?latitude=48.821&longitude=2.435&current_weather=true');
+    const data = await res.json();
+    const weather = data.current_weather;
+    document.getElementById('meteo').innerText = `🌤 ${weather.temperature}°C – Vent ${weather.windspeed} km/h`;
   } catch (e) {
-    return null;
+    document.getElementById('meteo').innerText = `⚠️ Météo indisponible`;
   }
 }
 
-function formatTime(dateStr) {
-  const date = new Date(dateStr);
-  return isNaN(date) ? 'Invalid Date' : date.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
+// Appel API PRIM
+async function fetchDepartures(stopId) {
+  const url = `https://prim.iledefrance-mobilites.fr/marketplace/stop-monitoring?MonitoringRef=${stopId}`;
+  const response = await fetch(proxy + encodeURIComponent(url));
+  const data = await response.json();
+  return data.Siri?.ServiceDelivery?.StopMonitoringDelivery[0];
 }
 
-function minutesRemaining(dateStr) {
-  const now = new Date();
-  const then = new Date(dateStr);
-  return Math.round((then - now) / 60000);
+// Formatage heure
+function formatHeure(dateStr) {
+  const d = new Date(dateStr);
+  return d.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
 }
 
-function renderDepartures(containerId, title, deliveriesList) {
-  const el = document.getElementById(containerId);
-  el.innerHTML = `<div class="station-title">${title}</div>`;
+function minutesRestantes(dateStr) {
+  const diff = (new Date(dateStr) - new Date()) / 60000;
+  return Math.round(diff);
+}
+
+// Affichage d’une station
+function renderStation(stationName, deliveries, linesFilter = []) {
+  const container = document.getElementById(stationName);
+  container.innerHTML = `<h2>${stationName}</h2>`;
+
   const lignes = {};
 
-  deliveriesList.forEach(deliveries => {
-    if (!deliveries || !deliveries.MonitoredStopVisit) return;
+  deliveries?.MonitoredStopVisit?.forEach(visit => {
+    const line = visit.MonitoredVehicleJourney?.LineRef?.value?.split(':').pop();
+    if (linesFilter.length && !linesFilter.includes(line)) return;
 
-    deliveries.MonitoredStopVisit.forEach(v => {
-      const dir = v.MonitoredVehicleJourney.DirectionName?.value || '';
-      const line = v.MonitoredVehicleJourney.LineRef?.value || '';
-      const destination = v.MonitoredVehicleJourney.DestinationName?.value || '';
+    const destination = visit.MonitoredVehicleJourney.DestinationName?.value || '';
+    const aimed = visit.MonitoredVehicleJourney.MonitoredCall.AimedDepartureTime;
+    const delay = visit.MonitoredVehicleJourney.MonitoredCall.DepartureStatus;
+    const mins = minutesRestantes(aimed);
+    const heure = formatHeure(aimed);
 
-      // Filtrage des lignes pour Joinville uniquement
-      if (containerId === 'joinville' && !lignesJoinville.includes(line)) return;
+    const label = `Ligne ${line} → ${destination}`;
+    if (!lignes[label]) lignes[label] = [];
 
-      const scheduled = v.MonitoredVehicleJourney.MonitoredCall.AimedDepartureTime;
-      const minutes = minutesRemaining(scheduled);
-      const heure = formatTime(scheduled);
-
-      const key = `${line} → ${destination}`;
-      if (!lignes[key]) lignes[key] = [];
-      lignes[key].push({heure, minutes});
-    });
-
-    if (deliveries?.GeneralMessage) {
-      deliveries.GeneralMessage.forEach(m => {
-        const alert = document.createElement('div');
-        alert.className = 'alert';
-        alert.textContent = '⚠ ' + (m?.InfoMessage?.[0]?.value || 'Perturbation');
-        el.appendChild(alert);
-      });
-    }
+    lignes[label].push({ heure, mins, delay });
   });
 
-  Object.entries(lignes).forEach(([dir, passages]) => {
-    const block = document.createElement('div');
-    block.innerHTML = `<div class="ligne-title">🚍 ${dir}</div>`;
+  Object.entries(lignes).forEach(([label, passages]) => {
+    const section = document.createElement('div');
+    section.className = 'line-block';
+    section.innerHTML = `<div class="line-title">${label}</div>`;
+
     const grid = document.createElement('div');
     grid.className = 'grid';
+
     passages.slice(0, 4).forEach(p => {
       const div = document.createElement('div');
-      let classe = 'passage';
-      if (p.minutes <= 5) classe += ' highlight';
-      else if (p.minutes > 50 || p.minutes < 0) classe += ' late';
-      div.className = classe;
-      div.innerHTML = isNaN(p.minutes) ? `Invalid` : `${p.heure}<br><small>${p.minutes} min</small>`;
+      div.className = 'passage';
+      if (p.delay === 'cancelled') div.classList.add('cancelled');
+      else if (p.mins <= 5) div.classList.add('highlight');
+      else if (p.mins > 50 || p.mins < 0) div.classList.add('late');
+
+      div.innerHTML = p.delay === 'cancelled'
+        ? `❌ Supprimé`
+        : `${p.heure}<br><small>${p.mins} min</small>`;
       grid.appendChild(div);
     });
-    block.appendChild(grid);
-    el.appendChild(block);
+
+    section.appendChild(grid);
+    container.appendChild(section);
+  });
+
+  deliveries?.GeneralMessage?.forEach(msg => {
+    const alert = document.createElement('div');
+    alert.className = 'alert';
+    alert.innerText = '⚠️ ' + msg?.InfoMessage?.[0]?.value;
+    container.appendChild(alert);
   });
 }
 
+// Boucle principale
 async function renderAll() {
-  for (const [key, {name, refs}] of Object.entries(monitoringRefs)) {
-    const allDeliveries = await Promise.all(refs.map(fetchData));
-    renderDepartures(key, name, allDeliveries);
+  await fetchWeather();
+
+  for (const [station, {id, lines}] of Object.entries(stops)) {
+    try {
+      const data = await fetchDepartures(id);
+      renderStation(station, data, lines);
+    } catch (e) {
+      document.getElementById(station).innerHTML = `<h2>${station}</h2><p>⚠️ Erreur de données</p>`;
+    }
   }
 }
 
+// Lancer
 renderAll();
 setInterval(renderAll, 30000);
