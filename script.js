@@ -35,7 +35,7 @@ async function fetchPassages(stop) {
   try {
     const response = await fetch(url);
     const data = await response.json();
-    const visits = data?.Siri?.ServiceDelivery?.StopMonitoringDelivery?.[0]?.MonitoredStopVisit || [];
+    const visits = data.Siri.ServiceDelivery.StopMonitoringDelivery[0].MonitoredStopVisit;
     const block = document.getElementById(stop.containerId);
     if (!block) {
       console.error(`❌ Bloc introuvable pour containerId: ${stop.containerId}`);
@@ -44,61 +44,52 @@ async function fetchPassages(stop) {
 
     block.innerHTML = `<h2>${stop.name}</h2>`;
 
-    if (visits.length === 0) {
-      block.innerHTML += `<div class="train-sub">⚠️ Aucun passage prévu dans l'immédiat</div>`;
-      await fetchTrafficMessages(stop.line, block);
-      return;
-    }
-
     const grouped = {};
     visits.forEach(v => {
       const mvj = v.MonitoredVehicleJourney;
-      const dir = mvj.DirectionRef || "inconnu";
+      const dir = mvj.DirectionRef || mvj.DestinationName?.[0]?.value || "inconnu";
       if (!grouped[dir]) grouped[dir] = [];
       grouped[dir].push({
-        aimed: mvj.MonitoredCall.AimedDepartureTime,
-        expected: mvj.MonitoredCall.ExpectedDepartureTime,
-        status: mvj.MonitoredCall.DepartureStatus,
-        destination: mvj.DestinationName[0],
-        stops: mvj.MonitoredCall.StopPointRef,
+        aimed: mvj.MonitoredCall?.AimedDepartureTime,
+        expected: mvj.MonitoredCall?.ExpectedDepartureTime,
+        status: mvj.MonitoredCall?.DepartureStatus,
+        destination: mvj.DestinationName?.[0]?.value || mvj.DestinationName || "",
+        stops: mvj.MonitoredCall?.StopPointRef,
         tripId: mvj.VehicleJourneyRef
       });
     });
 
     Object.keys(grouped).forEach(dir => {
       block.innerHTML += `<h3>${grouped[dir][0].destination}</h3>`;
+      const grid = document.createElement("div");
+      grid.className = "grid-passages";
+
       grouped[dir].slice(0, 4).forEach(p => {
+        if (!p.aimed || !p.expected) return;
+
         const aimed = new Date(p.aimed);
         const expected = new Date(p.expected);
-        const diff = Math.round((expected - new Date()) / 60000);
+        const now = new Date();
+        const diff = Math.round((expected - now) / 60000);
         const isDelayed = expected.getTime() !== aimed.getTime();
         const isCancelled = p.status === "cancelled";
-        const isImminent = diff < 1.5;
 
-        let line = `<div class="train-line">🕐 `;
-        if (isCancelled) {
-          line += `<s>${aimed.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</s> ❌ supprimé`;
-        } else if (isDelayed) {
-          line += `<s>${aimed.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</s> → ${expected.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
-        } else {
-          line += `${expected.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
-        }
-
-        line += `</div><div class="train-sub">`;
+        const timeStr = expected.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        let content = "";
 
         if (isCancelled) {
-          line += `❌ supprimé`;
-        } else if (isDelayed) {
-          line += `<span class="blink">⚠️ Retard +${diff - Math.round((aimed - new Date()) / 60000)} min</span>`;
-        } else if (isImminent) {
-          line += `🟢 Passage imminent`;
+          content = `<div class='train-item cancelled'><s>${timeStr}</s><br>❌ supprimé</div>`;
+        } else if (diff > 50) {
+          content = `<div class='train-item'>${timeStr}</div>`;
         } else {
-          line += `⏳ dans ${diff} min`;
+          let detail = diff <= 5 ? `⏱ <strong>${diff} min</strong>` : `⏳ ${diff} min`;
+          content = `<div class='train-item${diff <= 5 ? " highlight" : ""}'>${timeStr}<br>${detail}</div>`;
         }
 
-        line += `</div>`;
-        block.innerHTML += line;
+        grid.innerHTML += content;
       });
+
+      block.appendChild(grid);
     });
 
     await fetchTrafficMessages(stop.line, block);
