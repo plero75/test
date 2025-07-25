@@ -1,94 +1,10 @@
 
-body {
-  margin: 0;
-  font-family: sans-serif;
-  background: #0b0f1e;
-  color: white;
-}
-.line-block {
-  padding: 20px;
-  margin: 20px;
-  border-radius: 12px;
-  background-color: #1a1f36;
-  box-shadow: 0 0 10px #000;
-}
-.header {
-  font-size: 1.5em;
-  margin-bottom: 8px;
-  color: #ffdd57;
-}
-.direction {
-  font-size: 1.2em;
-  margin-top: 12px;
-  color: #80dfff;
-}
-.row {
-  display: flex;
-  justify-content: space-between;
-  padding: 8px 0;
-  border-bottom: 1px solid #333;
-  font-size: 1.1em;
-}
-.status {
-  font-weight: bold;
-}
-.alert {
-  margin-top: 10px;
-  padding: 10px;
-  background: #ffd70033;
-  border-left: 5px solid #ffdd57;
-  font-style: italic;
-  font-size: 0.95em;
-}
-.fade {
-  animation: fadeinout 6s infinite;
-}
-@keyframes fadeinout {
-  0% {opacity: 0;}
-  10% {opacity: 1;}
-  90% {opacity: 1;}
-  100% {opacity: 0;}
-}
-.crossed {
-  text-decoration: line-through;
-  opacity: 0.6;
-}
-.dynamic-switch {
-  display: inline-block;
-  transition: opacity 0.5s ease-in-out;
-}
-.cancelled {
-  color: #ff4c4c;
-  text-align: center;
-  font-style: italic;
-  padding: 6px 0;
-}
-
-.train-group {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
-  gap: 0.5rem;
-  margin-bottom: 1rem;
-}
-
-.train-cell {
-  background: #222;
-  border-radius: 8px;
-  padding: 6px;
-  text-align: center;
-  font-size: 14px;
-}
-.train-cell.soon {
-  background-color: #004d00;
-  color: white;
-  font-weight: bold;
-}
-
-@media screen and (max-width: 600px) {
-  .train-group {
-    grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
-    font-size: 12px;
-  }
-}
-
-
+body {font-family: Arial, sans-serif; background: #1e1e2f; color: white; margin: 0; padding: 0;}
+.dashboard {display: grid; gap: 1em; padding: 1em;}
+.station {background: #2d2d40; padding: 1em; border-radius: 10px;}
+.line-block {display: flex; align-items: center; gap: 0.5em; background: #3b3b55; padding: 0.5em; border-radius: 6px;}
+.time-box {background: #44445a; padding: 0.3em 0.6em; border-radius: 4px;}
+.imminent {background: #16a085;} .delayed {background: #e67e22;} .late {background: #c0392b;}
+.weather, .news-ticker {padding: 0.5em; background: #34495e; text-align: center; font-size: 0.9em;}
+.news-ticker {white-space: nowrap; overflow: hidden; animation: ticker 20s linear infinite;}
+@keyframes ticker {from {transform: translateX(100%);} to {transform: translateX(-100%);}}
