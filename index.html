@@ -69,19 +69,21 @@
       joinville: {
         name: "Joinville-le-Pont",
         refs: [
-          "STIF:StopArea:SP:43135:" // Joinville-le-Pont
+          "STIF:StopArea:SP:43135:", // Joinville-le-Pont RER
+          "STIF:StopArea:SP:463646:", // Bus 77
+          "STIF:StopArea:SP:463643:"  // Bus 201
         ]
       },
       hippodrome: {
         name: "Hippodrome de Vincennes",
         refs: [
-          "STIF:StopArea:SP:463641:"
+          "STIF:StopArea:SP:463641:" // Bus 77
         ]
       },
       breuil: {
         name: "École du Breuil",
         refs: [
-          "STIF:StopArea:SP:463644:"
+          "STIF:StopArea:SP:463644:" // Bus 201
         ]
       }
     };
@@ -167,6 +169,7 @@
     }
 
     renderAll();
+    setInterval(renderAll, 30000);
   </script>
 </body>
 </html>
