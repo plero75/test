@@ -81,6 +81,7 @@
     };
 
     const lignesJoinville = ["C02251", "C01130", "C01135", "C01137", "C01139", "C01141", "C01219", "C01260", "C01399"];
+    const lignesBreuil = ["C02251", "C01219"];
 
     async function fetchData(monitoringRef) {
       const proxy = 'https://ratp-proxy.hippodrome-proxy42.workers.dev/?url=';
@@ -120,6 +121,7 @@
 
           // Filtrage des lignes pour Joinville uniquement
           if (containerId === 'joinville' && !lignesJoinville.includes(line)) return;
+          if (containerId === 'breuil' && !lignesBreuil.includes(line)) return;
 
           const scheduled = v.MonitoredVehicleJourney.MonitoredCall.AimedDepartureTime;
           const minutes = minutesRemaining(scheduled);
