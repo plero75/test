@@ -13,10 +13,7 @@ const monitoringRefs = {
   }
 };
 
-const lignesJoinville = [
-  "C02251", "C01130", "C01135", "C01137", "C01139", "C01141", "C01219", "C01260", "C01399"
-];
-const lignesBreuil = ["C02251", "C01219"];
+const lignesJoinville = ["C02251", "C01130", "C01135", "C01137", "C01139", "C01141", "C01219", "C01260", "C01399"];
 
 async function fetchData(monitoringRef) {
   const proxy = 'https://ratp-proxy.hippodrome-proxy42.workers.dev/?url=';
@@ -32,7 +29,7 @@ async function fetchData(monitoringRef) {
 
 function formatTime(dateStr) {
   const date = new Date(dateStr);
-  return isNaN(date) ? '❌' : date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  return isNaN(date) ? 'Invalid Date' : date.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
 }
 
 function minutesRemaining(dateStr) {
@@ -47,26 +44,23 @@ function renderDepartures(containerId, title, deliveriesList) {
   const lignes = {};
 
   deliveriesList.forEach(deliveries => {
-    if (!deliveries?.MonitoredStopVisit) return;
+    if (!deliveries || !deliveries.MonitoredStopVisit) return;
 
     deliveries.MonitoredStopVisit.forEach(v => {
-      const journey = v.MonitoredVehicleJourney;
-      const line = journey.LineRef?.value || '';
-      const dest = journey.DestinationName?.value || '';
-      const scheduled = journey.MonitoredCall?.AimedDepartureTime;
-      const status = journey.MonitoredCall?.DepartureStatus || '';
-      const delay = journey.MonitoredCall?.DepartureStatus === 'cancelled' ? '❌ Supprimé' : '';
+      const dir = v.MonitoredVehicleJourney.DirectionName?.value || '';
+      const line = v.MonitoredVehicleJourney.LineRef?.value || '';
+      const destination = v.MonitoredVehicleJourney.DestinationName?.value || '';
 
+      // Filtrage des lignes pour Joinville uniquement
+      if (containerId === 'joinville' && !lignesJoinville.includes(line)) return;
+
+      const scheduled = v.MonitoredVehicleJourney.MonitoredCall.AimedDepartureTime;
       const minutes = minutesRemaining(scheduled);
       const heure = formatTime(scheduled);
 
-      // Appliquer le bon filtre pour Joinville et Breuil
-      if (containerId === 'joinville' && !lignesJoinville.includes(line)) return;
-      if (containerId === 'breuil' && !lignesBreuil.includes(line)) return;
-
-      const key = `${line} → ${dest}`;
+      const key = `${line} → ${destination}`;
       if (!lignes[key]) lignes[key] = [];
-      lignes[key].push({ heure, minutes, status });
+      lignes[key].push({heure, minutes});
     });
 
     if (deliveries?.GeneralMessage) {
@@ -84,35 +78,24 @@ function renderDepartures(containerId, title, deliveriesList) {
     block.innerHTML = `<div class="ligne-title">🚍 ${dir}</div>`;
     const grid = document.createElement('div');
     grid.className = 'grid';
-
     passages.slice(0, 4).forEach(p => {
       const div = document.createElement('div');
       let classe = 'passage';
-      if (p.status === 'cancelled') {
-        classe += ' late';
-        div.innerHTML = `<b>${p.heure}</b><br><small>❌ supprimé</small>`;
-      } else if (p.minutes <= 5 && p.minutes >= 0) {
-        classe += ' highlight';
-        div.innerHTML = `<b>${p.heure}</b><br><small>${p.minutes} min</small>`;
-      } else if (p.minutes > 50 || p.minutes < 0) {
-        classe += ' late';
-        div.innerHTML = `<b>${p.heure}</b>`;
-      } else {
-        div.innerHTML = `<b>${p.heure}</b><br><small>${p.minutes} min</small>`;
-      }
+      if (p.minutes <= 5) classe += ' highlight';
+      else if (p.minutes > 50 || p.minutes < 0) classe += ' late';
       div.className = classe;
+      div.innerHTML = isNaN(p.minutes) ? `Invalid` : `${p.heure}<br><small>${p.minutes} min</small>`;
       grid.appendChild(div);
     });
-
     block.appendChild(grid);
     el.appendChild(block);
   });
 }
 
 async function renderAll() {
-  for (const [key, { name, refs }] of Object.entries(monitoringRefs)) {
-    const deliveries = await Promise.all(refs.map(fetchData));
-    renderDepartures(key, name, deliveries);
+  for (const [key, {name, refs}] of Object.entries(monitoringRefs)) {
+    const allDeliveries = await Promise.all(refs.map(fetchData));
+    renderDepartures(key, name, allDeliveries);
   }
 }
 
