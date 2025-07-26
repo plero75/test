@@ -1,17 +1,21 @@
-
-<!DOCTYPE html>
+<!doctype html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dashboard Hippodrome Paris-Vincennes</title>
+  <meta charset="utf-8">
+  <title>Tableau de bord des prochains passages</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="weather" id="weather"></div>
-  <div class="news-ticker" id="newsTicker"></div>
-  <h1>🚇 Dashboard Hippodrome Paris-Vincennes</h1>
-  <div class="dashboard" id="dashboard"></div>
+  <!-- Affichage météo -->
+  <div id="weather" class="info-bar"></div>
+
+  <!-- Tableau de bord des arrêts -->
+  <div id="dashboard"></div>
+
+  <!-- Fil d’actualité -->
+  <div id="newsTicker" class="info-bar"></div>
+
+  <!-- Votre script -->
   <script src="script.js"></script>
 </body>
 </html>
