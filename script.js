@@ -1,37 +1,30 @@
 // Proxy de contournement pour l'API RATP/IDFM
 const proxyBase = 'https://ratp-proxy.hippodrome-proxy42.workers.dev';
 
-// Liste des arrêts que nous souhaitons suivre. Chaque objet contient l'ID SIRI (StopArea),
-// le nom de la station et les codes de lignes à afficher.
+// Liste des arrêts à suivre : identifiant SIRI (StopArea), nom et lignes à afficher
 const stops = [
   {
-    // Joinville‑le‑Pont : utiliser l'identifiant de zone (StopArea)
     id: 'STIF:StopArea:SP:43135:',
     name: 'Joinville-le-Pont',
     lines: ['C02251', 'C01130', 'C01135', 'C01137', 'C01139', 'C01141', 'C01219', 'C01260', 'C01399']
   },
   {
-    // Hippodrome de Vincennes : utiliser l'identifiant de zone du bus 77
     id: 'STIF:StopArea:SP:463641:',
     name: 'Hippodrome de Vincennes',
     lines: ['C02251']
   },
   {
-    // École du Breuil : utiliser l'identifiant de zone desservie par 77 et 201
     id: 'STIF:StopArea:SP:463644:',
     name: 'École du Breuil',
     lines: ['C01219', 'C02251']
   }
 ];
 
-// Élément principal où sera construit le tableau de bord.
+// Élément principal où sera construit le tableau de bord
 const dashboard = document.getElementById('dashboard');
 
 /**
- * Récupère les passages pour un arrêt donné via l'API PRIM. Utilise localStorage
- * comme cache de secours en cas d'échec de la requête réseau.
- * @param {{id:string,name:string,lines:string[]}} stop
- * @returns {Promise<Array>} liste des visites surveillées
+ * Récupère les passages pour un arrêt via l’API PRIM en utilisant localStorage comme cache de secours.
  */
 async function fetchData(stop) {
   const endpoint = `https://prim.iledefrance-mobilites.fr/marketplace/stop-monitoring?MonitoringRef=${stop.id}`;
@@ -39,29 +32,20 @@ async function fetchData(stop) {
   try {
     const res = await fetch(url);
     const data = await res.json();
-    // mise en cache des données pour cet arrêt
     localStorage.setItem(`stop-${stop.id}`, JSON.stringify(data));
-    return (
-      data.Siri.ServiceDelivery.StopMonitoringDelivery?.[0]
-        .MonitoredStopVisit || []
-    );
+    return data.Siri.ServiceDelivery.StopMonitoringDelivery?.[0].MonitoredStopVisit || [];
   } catch (e) {
-    // si la requête échoue, tente de lire le cache
     const cached = localStorage.getItem(`stop-${stop.id}`);
     if (cached) {
       const parsed = JSON.parse(cached);
-      return (
-        parsed.Siri.ServiceDelivery.StopMonitoringDelivery?.[0]
-          .MonitoredStopVisit || []
-      );
+      return parsed.Siri.ServiceDelivery.StopMonitoringDelivery?.[0].MonitoredStopVisit || [];
     }
     return [];
   }
 }
 
 /**
- * Calcule la classe CSS à appliquer en fonction du nombre de minutes restantes avant le départ.
- * @param {number} mins
+ * Détermine la classe CSS en fonction des minutes restantes avant le départ.
  */
 function getStatusClass(mins) {
   if (mins < 5) return 'imminent';
@@ -69,25 +53,17 @@ function getStatusClass(mins) {
   return 'late';
 }
 
-/**
- * Cache local pour stocker la liste des arrêts par ligne afin d'éviter des appels répétés.
- */
+// Cache pour les listes d’arrêts par ligne
 const lineStopsCache = {};
 
 /**
- * Retourne le nom d'un arrêt à partir de son identifiant SIRI (StopPointRef) en interrogeant
- * le jeu de données Opendatasoft "Périmètre des données temps réel…". Si le nom n'est pas trouvé,
- * renvoie l'identifiant brut.
- * @param {string} stopPointRef
- * @returns {Promise<string>}
+ * Convertit un identifiant StopPointRef en nom d’arrêt via Opendatasoft.
  */
 async function getStopName(stopPointRef) {
   try {
     const odsEndpoint =
-      `https://data.opendatasoft.com/api/explore/v2.1/catalog/datasets/` +
-      `perimetre-des-donnees-temps-reel-disponibles-sur-la-plateforme-dechanges-stif@datailedefrance/records` +
-      `?where=ns2_stoppointref%3D%22${encodeURIComponent(stopPointRef)}%22` +
-      `&select=ns2_stopname&limit=1`;
+      `https://data.opendatasoft.com/api/explore/v2.1/catalog/datasets/perimetre-des-donnees-temps-reel-disponibles-sur-la-plateforme-dechanges-stif@datailedefrance/records` +
+      `?where=ns2_stoppointref%3D%22${encodeURIComponent(stopPointRef)}%22&select=ns2_stopname&limit=1`;
     const url = `${proxyBase}/?url=${encodeURIComponent(odsEndpoint)}`;
     const res = await fetch(url);
     const json = await res.json();
@@ -102,10 +78,7 @@ async function getStopName(stopPointRef) {
 }
 
 /**
- * Récupère la liste des arrêts desservis pour une ligne à partir de l'endpoint estimated-timetable.
- * Stocke les résultats en cache par identifiant de ligne pour éviter des requêtes répétées.
- * @param {string} lineRef valeur complète de type "STIF:Line::Cxxxxx:"
- * @returns {Promise<string[]>} Liste des noms des arrêts desservis
+ * Récupère et met en cache la liste des arrêts desservis pour une ligne en interrogeant estimated‑timetable.
  */
 async function getStopsForLine(lineRef) {
   if (lineStopsCache[lineRef]) return lineStopsCache[lineRef];
@@ -114,8 +87,7 @@ async function getStopsForLine(lineRef) {
   try {
     const res = await fetch(url);
     const data = await res.json();
-    const deliveries =
-      data.Siri?.ServiceDelivery?.EstimatedTimetableDelivery?.[0]?.EstimatedJourneyVersionFrame || [];
+    const deliveries = data.Siri?.ServiceDelivery?.EstimatedTimetableDelivery?.[0]?.EstimatedJourneyVersionFrame || [];
     if (deliveries.length > 0) {
       const journeys = deliveries[0].EstimatedVehicleJourney || [];
       if (journeys.length > 0) {
@@ -139,33 +111,28 @@ async function getStopsForLine(lineRef) {
 }
 
 /**
- * Construit l'interface pour toutes les stations définies dans `stops`.
- * Les passages sont regroupés par destination (sens) ; on affiche
- * quatre prochains départs, et pour le premier départ de chaque sens
- * la liste des gares desservies est affichée.
+ * Construit l’interface du tableau de bord pour toutes les stations.
  */
 async function buildDashboard() {
   dashboard.innerHTML = '';
   for (const stop of stops) {
     const data = await fetchData(stop);
 
-    // Crée un conteneur pour cette station
     const block = document.createElement('div');
     block.className = 'station';
     block.innerHTML = `<h2>${stop.name}</h2>`;
 
-    // Groupe les visites par destination (direction) et filtre selon les lignes autorisées
+    // Grouper les visites par destination et filtrer selon les lignes autorisées
     const grouped = {};
     data.forEach(v => {
       const lineCode = v.MonitoredVehicleJourney.LineRef.value.split(':').pop();
       if (!stop.lines.includes(lineCode)) return;
-      const destination =
-        v.MonitoredVehicleJourney.DestinationName?.[0]?.value || 'Destination';
-      if (!grouped[destination]) grouped[destination] = [];
-      grouped[destination].push(v);
+      const dest = v.MonitoredVehicleJourney.DestinationName?.[0]?.value || 'Destination';
+      if (!grouped[dest]) grouped[dest] = [];
+      grouped[dest].push(v);
     });
 
-    // Pour chaque direction, afficher jusqu'à 4 prochains départs
+    // Pour chaque sens, afficher jusqu’à 4 départs et les arrêts desservis du premier
     for (const [destination, visits] of Object.entries(grouped)) {
       const dirSection = document.createElement('div');
       dirSection.className = 'direction';
@@ -174,15 +141,12 @@ async function buildDashboard() {
       visits.slice(0, 4).forEach(async (v, idx) => {
         const aimed = v.MonitoredVehicleJourney.MonitoredCall.AimedDepartureTime;
         const departureDate = new Date(aimed);
-        const timeStr = departureDate.toLocaleTimeString('fr-FR', {
-          hour: '2-digit',
-          minute: '2-digit'
-        });
+        const timeStr = departureDate.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
         const mins = Math.round((departureDate - new Date()) / 60000);
         const statusClass = getStatusClass(mins);
         const lineCode = v.MonitoredVehicleJourney.LineRef.value.split(':').pop();
 
-        // Statut de départ
+        // Statut (pour annulation éventuelle)
         const depStatus = v.MonitoredVehicleJourney.MonitoredCall.DepartureStatus;
         let timeBoxClass = statusClass;
         let timeBoxContent;
@@ -193,7 +157,7 @@ async function buildDashboard() {
           timeBoxContent = `${timeStr} ⏱ ${mins} min`;
         }
 
-        // Élément pour l'affichage de la ligne et de l'heure
+        // Bloc ligne + heure
         const lineBlock = document.createElement('div');
         lineBlock.className = 'line-block';
         lineBlock.innerHTML = `
@@ -202,7 +166,7 @@ async function buildDashboard() {
         `;
         dirSection.appendChild(lineBlock);
 
-        // Pour le premier passage de cette direction, afficher la liste des gares desservies
+        // Si c’est le premier passage de cette direction, afficher la liste des gares desservies
         if (idx === 0) {
           const fullLineRef = v.MonitoredVehicleJourney.LineRef.value;
           try {
@@ -217,7 +181,7 @@ async function buildDashboard() {
               dirSection.appendChild(stopsDiv);
             }
           } catch {
-            /* ignore les erreurs */
+            /* ignore */
           }
         }
       });
@@ -229,7 +193,7 @@ async function buildDashboard() {
 }
 
 /**
- * Récupère la météo actuelle et met à jour l’élément #weather.
+ * Affiche la météo actuelle
  */
 async function fetchWeather() {
   try {
@@ -244,7 +208,7 @@ async function fetchWeather() {
 }
 
 /**
- * Récupère les titres des actualités et met à jour l’élément #newsTicker.
+ * Affiche les titres d’actualité
  */
 async function fetchNews() {
   try {
@@ -265,8 +229,7 @@ async function fetchNews() {
 }
 
 /**
- * Fonction d’initialisation : lance le tableau de bord, la météo et les news,
- * puis programme les rafraîchissements périodiques.
+ * Fonction d’initialisation : déclenche l’affichage initial et programme les rafraîchissements.
  */
 function init() {
   buildDashboard();
