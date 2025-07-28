@@ -113,84 +113,45 @@ async function getStopsForLine(lineRef) {
 /**
  * Construit l’interface du tableau de bord pour toutes les stations.
  */
-async function buildDashboard() {
-  dashboard.innerHTML = '';
-  for (const stop of stops) {
-    const data = await fetchData(stop);
-
-    const block = document.createElement('div');
-    block.className = 'station';
-    block.innerHTML = `<h2>${stop.name}</h2>`;
-
-    // Grouper les visites par destination et filtrer selon les lignes autorisées
-    const grouped = {};
-    data.forEach(v => {
-      const lineCode = v.MonitoredVehicleJourney.LineRef.value.match(/C\d{5}/)?.[0];
-      if (!stop.lines.includes(lineCode)) return;
-      const dest = v.MonitoredVehicleJourney.DestinationName?.[0]?.value || 'Destination';
-      if (!grouped[dest]) grouped[dest] = [];
-      grouped[dest].push(v);
-    });
-
-    // Pour chaque sens, afficher jusqu’à 4 départs et les arrêts desservis du premier
-    for (const [destination, visits] of Object.entries(grouped)) {
-      const dirSection = document.createElement('div');
-      dirSection.className = 'direction';
-      dirSection.innerHTML = `<h3>Direction : ${destination}</h3>`;
-
-      visits.slice(0, 4).forEach(async (v, idx) => {
-        const aimed = v.MonitoredVehicleJourney.MonitoredCall.AimedDepartureTime;
-        const departureDate = new Date(aimed);
-        const timeStr = departureDate.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-        const mins = Math.round((departureDate - new Date()) / 60000);
-        const statusClass = getStatusClass(mins);
-        const lineCode = v.MonitoredVehicleJourney.LineRef.value.match(/C\d{5}/)?.[0];
-
-        // Statut (pour annulation éventuelle)
-        const depStatus = v.MonitoredVehicleJourney.MonitoredCall.DepartureStatus;
-        let timeBoxClass = statusClass;
-        let timeBoxContent;
-        if (depStatus && depStatus.toLowerCase() === 'cancelled') {
-          timeBoxClass = 'cancelled';
-          timeBoxContent = '❌ Supprimé';
-        } else {
-          timeBoxContent = `${timeStr} ⏱ ${mins} min`;
-        }
-
-        // Bloc ligne + heure
-        const lineBlock = document.createElement('div');
-        lineBlock.className = 'line-block';
-        lineBlock.innerHTML = `
-          <img src="icons/${lineCode}.png" width="30" alt="Ligne ${lineCode}"/>
-          <div class="time-box ${timeBoxClass}">${timeBoxContent}</div>
-        `;
-        dirSection.appendChild(lineBlock);
-
-        // Si c’est le premier passage de cette direction, afficher la liste des gares desservies
-        if (idx === 0) {
-          const fullLineRef = v.MonitoredVehicleJourney.LineRef.value;
-          try {
-            const stopsList = await getStopsForLine(fullLineRef);
-            if (stopsList && stopsList.length > 0) {
-              const stopsDiv = document.createElement('div');
-              stopsDiv.className = 'stops-list';
-              stopsDiv.innerHTML =
-                `<details><summary>Gares desservies</summary><ul>` +
-                stopsList.map(name => `<li>${name}</li>`).join('') +
-                `</ul></details>`;
-              dirSection.appendChild(stopsDiv);
-            }
-          } catch {
-            /* ignore */
-          }
-        }
-      });
-
-      block.appendChild(dirSection);
-    }
-    dashboard.appendChild(block);
+visits.slice(0, 4).forEach(async (v, idx) => {
+  const aimed = v.MonitoredVehicleJourney.MonitoredCall?.AimedDepartureTime;
+  if (!aimed) {
+    console.warn("⛔ Pas de AimedDepartureTime pour :", v);
+    return;
   }
-}
+
+  const departureDate = new Date(aimed);
+  const timeStr = departureDate.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+  const mins = Math.round((departureDate - new Date()) / 60000);
+  const lineCode = v.MonitoredVehicleJourney.LineRef.value.match(/C\d{5}/)?.[0];
+  const statusClass = getStatusClass(mins);
+
+  // log console
+  console.log("✅ Passage détecté :", {
+    arrêt: stop.name,
+    ligne: lineCode,
+    destination: destination,
+    heure: timeStr,
+    minutes: mins
+  });
+
+  const depStatus = v.MonitoredVehicleJourney.MonitoredCall.DepartureStatus;
+  let timeBoxClass = statusClass;
+  let timeBoxContent;
+  if (depStatus && depStatus.toLowerCase() === 'cancelled') {
+    timeBoxClass = 'cancelled';
+    timeBoxContent = '❌ Supprimé';
+  } else {
+    timeBoxContent = `${timeStr} ⏱ ${mins} min`;
+  }
+
+  const lineBlock = document.createElement('div');
+  lineBlock.className = 'line-block';
+  lineBlock.innerHTML = `
+    <img src="icons/${lineCode}.png" width="30" alt="Ligne ${lineCode}"/>
+    <div class="time-box ${timeBoxClass}">${timeBoxContent}</div>
+  `;
+  dirSection.appendChild(lineBlock);
 
 /**
  * Affiche la météo actuelle
