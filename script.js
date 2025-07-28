@@ -125,7 +125,7 @@ async function buildDashboard() {
     // Grouper les visites par destination et filtrer selon les lignes autorisées
     const grouped = {};
     data.forEach(v => {
-      const lineCode = v.MonitoredVehicleJourney.LineRef.value.split(':').pop();
+      const lineCode = v.MonitoredVehicleJourney.LineRef.value.match(/C\d{5}/)?.[0];
       if (!stop.lines.includes(lineCode)) return;
       const dest = v.MonitoredVehicleJourney.DestinationName?.[0]?.value || 'Destination';
       if (!grouped[dest]) grouped[dest] = [];
@@ -144,7 +144,7 @@ async function buildDashboard() {
         const timeStr = departureDate.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
         const mins = Math.round((departureDate - new Date()) / 60000);
         const statusClass = getStatusClass(mins);
-        const lineCode = v.MonitoredVehicleJourney.LineRef.value.split(':').pop();
+        const lineCode = v.MonitoredVehicleJourney.LineRef.value.match(/C\d{5}/)?.[0];
 
         // Statut (pour annulation éventuelle)
         const depStatus = v.MonitoredVehicleJourney.MonitoredCall.DepartureStatus;
