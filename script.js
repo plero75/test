@@ -238,6 +238,9 @@ function init() {
   setInterval(buildDashboard, 60 * 1000);
   setInterval(fetchWeather, 30 * 60 * 1000);
   setInterval(fetchNews, 5 * 60 * 1000);
-}
+} // ← tu avais oublié celle-ci
 
 document.addEventListener('DOMContentLoaded', init);
+
+
+  
