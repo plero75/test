@@ -1,83 +1,93 @@
-body {
-  margin: 0;
-  padding: 20px;
-  font-family: Arial, sans-serif;
-  background: #f5f5f5;
+*{box-sizing:border-box}
+:root{
+  --sun:#ffd166; --sea:#38bdf8; --reef:#06d6a0; --coral:#ff6b6b; --ink:#0b1220; --card:#0d1b2a;
+  --fg:#f7fbff; --muted:#bed0ff;
+}
+html,body{height:100%}
+body{
+  margin:0; font-family: ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial;
+  color:var(--fg);
+  background:
+    radial-gradient(900px 500px at 20% -10%, rgba(255,209,102,.35), transparent 60%),
+    radial-gradient(900px 600px at 90% 110%, rgba(56,189,248,.25), transparent 60%),
+    linear-gradient(180deg, #071227 0%, #0b1631 60%, #0b1220 100%);
+  overflow-x:hidden;
+}
+#confetti{position:fixed; inset:0; width:100%; height:100%; pointer-events:none}
+
+.top{
+  display:flex; align-items:center; gap:12px; padding:14px 16px;
+  border-bottom:1px solid rgba(255,255,255,.08);
+  background:linear-gradient(180deg, rgba(11,22,49,.7), rgba(11,18,32,.2));
+  backdrop-filter: blur(6px);
+}
+.top h1{margin:0; font-size:clamp(1.1rem,2.5vw,1.6rem); font-weight:900; letter-spacing:.2px}
+.top h1 span{color:var(--sun)}
+.clock.chip{font-variant-numeric:tabular-nums}
+
+.wrap{max-width:980px;margin:0 auto;padding:24px;display:grid;gap:18px}
+.hero{
+  border:1px solid rgba(255,255,255,.08); border-radius:20px; padding:26px; text-align:center;
+  background:
+    radial-gradient(1000px 600px at 30% -20%, rgba(56,189,248,.2), transparent 60%),
+    radial-gradient(1000px 600px at 80% 120%, rgba(255,107,107,.18), transparent 60%),
+    linear-gradient(180deg, rgba(13,27,42,.8), rgba(8,18,36,.7));
+  box-shadow: 0 12px 36px rgba(0,0,0,.35), inset 0 0 80px rgba(56,189,248,.08);
+  position:relative; overflow:hidden;
+}
+.stickers{font-size:1.6rem; margin-bottom:8px; filter:drop-shadow(0 6px 12px rgba(0,0,0,.35))}
+.countdown{
+  display:flex; justify-content:center; align-items:center; gap:10px;
+  font-variant-numeric: tabular-nums; user-select:none;
+}
+.countdown div{
+  min-width:72px; padding:12px 14px; border-radius:16px;
+  border:1px solid rgba(255,255,255,.1);
+  background:linear-gradient(180deg, #112244, #0c1a36);
+  font-size: clamp(2.4rem, 9vw, 4.6rem); font-weight:1000; letter-spacing:1px;
+  text-shadow: 0 0 18px #5df, 0 0 36px #28f;
+  box-shadow: 0 10px 22px rgba(0,0,0,.35), inset 0 0 36px rgba(56,189,248,.12);
+  animation:pulse 2s ease-in-out infinite;
+}
+.sep{font-size:clamp(2.2rem,7vw,3.8rem); opacity:.85; margin:0 .15rem}
+@keyframes pulse{0%,100%{transform:translateY(0)}50%{transform:translateY(-2px)}}
+
+.eta{margin-top:12px; font-size:1.2rem}
+.meta{margin-top:6px; color:var(--muted)}
+.chips{display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin-top:12px}
+.chip{
+  border:1px solid rgba(255,255,255,.12); background:rgba(13,27,42,.55);
+  border-radius:999px; padding:6px 10px; font-size:.95rem
 }
 
-.info-bar {
-  margin-bottom: 15px;
-  padding: 10px;
-  background: #fff;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  font-size: 1rem;
+.tips{
+  border:1px dashed rgba(255,255,255,.18); border-radius:16px; padding:12px 14px;
+  background:rgba(255,255,255,.03); color:var(--muted); text-align:center
 }
 
-.station {
-  margin-bottom: 25px;
-  padding: 15px;
-  background: #fff;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-}
+.foot{padding:14px 16px; color:var(--muted); text-align:center}
 
-.station h2 {
-  margin-top: 0;
-  font-size: 1.3rem;
+/* État “Splash !” */
+body.splash .hero{
+  background:
+    radial-gradient(800px 400px at 50% 0%, rgba(6,214,160,.25), transparent 60%),
+    linear-gradient(180deg, rgba(0,60,80,.9), rgba(0,35,60,.85));
+  box-shadow: 0 16px 48px rgba(0,0,0,.45), inset 0 0 160px rgba(6,214,160,.25);
 }
+body.splash .countdown div{ text-shadow: 0 0 28px #0f9, 0 0 58px #0f9; }
 
-.direction h3 {
-  margin: 10px 0 5px;
-  font-size: 1rem;
+/* Petites vagues animées en fond au moment du Splash */
+body.splash .hero::after{
+  content:""; position:absolute; left:0; right:0; bottom:-1px; height:140px;
+  background:
+    radial-gradient(60px 30px at 20% 40%, rgba(255,255,255,.25), transparent 60%),
+    radial-gradient(80px 40px at 40% 60%, rgba(255,255,255,.25), transparent 60%),
+    radial-gradient(70px 35px at 60% 45%, rgba(255,255,255,.25), transparent 60%),
+    radial-gradient(65px 25px at 80% 55%, rgba(255,255,255,.25), transparent 60%);
+  animation:waves 2.4s ease-in-out infinite;
+  opacity:.3;
 }
-
-.line-block {
-  display: flex;
-  align-items: center;
-  margin-bottom: 5px;
-}
-
-.line-block img {
-  margin-right: 8px;
-}
-
-.time-box {
-  padding: 4px 8px;
-  border-radius: 4px;
-  background: #eee;
-  font-size: 0.9rem;
-}
-
-.time-box.imminent {
-  background: #d4edda; /* vert pâle */
-}
-
-.time-box.delayed {
-  background: #fff3cd; /* jaune pâle */
-}
-
-.time-box.late {
-  background: #f8d7da; /* rouge pâle */
-}
-
-.time-box.cancelled {
-  background: #f8d7da;
-  color: #721c24;
-}
-
-.stops-list {
-  margin-top: 8px;
-  font-size: 0.85rem;
-}
-
-.stops-list details summary {
-  cursor: pointer;
-  font-weight: bold;
-  margin-bottom: 4px;
-}
-
-.stops-list ul {
-  margin: 0;
-  padding-left: 20px;
+@keyframes waves{
+  0%,100%{ transform:translateY(0) }
+  50%{ transform:translateY(-6px) }
 }
