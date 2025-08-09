@@ -1,21 +1,50 @@
 <!doctype html>
 <html lang="fr">
 <head>
-  <meta charset="utf-8">
-  <title>Tableau de bord des prochains passages</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>💦 Plongeon de Paul dans…</title>
+  <link rel="stylesheet" href="./style.css" />
+  <meta name="color-scheme" content="dark light">
 </head>
 <body>
-  <!-- Affichage météo -->
-  <div id="weather" class="info-bar"></div>
+  <canvas id="confetti"></canvas>
 
-  <!-- Tableau de bord des arrêts -->
-  <div id="dashboard"></div>
+  <header class="top">
+    <div class="chip clock" id="clock">--:--:--</div>
+    <h1>💦 Plongeon de <span>Paul</span> dans la piscine dans…</h1>
+  </header>
 
-  <!-- Fil d’actualité -->
-  <div id="newsTicker" class="info-bar"></div>
+  <main class="wrap">
+    <section class="hero">
+      <div class="stickers">🦩🩴🍹🌴</div>
+      <div class="countdown">
+        <div class="dd">--</div><span class="sep">:</span>
+        <div class="hh">--</div><span class="sep">:</span>
+        <div class="mm">--</div><span class="sep">:</span>
+        <div class="ss">--</div>
+      </div>
+      <p class="eta" id="eta">On cale l’heure du splash…</p>
+      <p class="meta" id="meta">Mode vacances activé ☀️</p>
 
-  <!-- Votre script -->
-  <script src="script.js"></script>
+      <div class="chips" id="chips">
+        <div class="chip" id="sourceChip">⛱️ Source : manuel/SNCF</div>
+        <div class="chip" id="detailChip">—</div>
+      </div>
+    </section>
+
+    <section class="tips">
+      <p>Astuce : <code>?at=YYYY-MM-DDTHH:MM</code> (horaire manuel) •
+      ou <code>?key=TA_CLE</code> pour l’arrivée à <strong>Labouheyre</strong> (SNCF).</p>
+    </section>
+  </main>
+
+  <footer class="foot">
+    <div id="final">Quand ça arrive à 0… <strong>SPLAAASH !</strong> 🏊‍♂️💥🌊</div>
+  </footer>
+
+  <!-- Optionnel : définir une clé ici (évite en public) -->
+  <script>window.SNCF_API_KEY = "";</script>
+  <script src="./app.js"></script>
 </body>
 </html>
