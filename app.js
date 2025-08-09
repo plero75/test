@@ -1,8 +1,6 @@
-// --- Config piscine + SNCF (Labouheyre) ---------------------------------
-const STATION_STOP_AREA = "stop_area:OCE:SA:87582551"; // Labouheyre
+const STATION_STOP_AREA = "stop_area:OCE:SA:87582551";
 const API_BASE = "https://api.sncf.com/v1/coverage/sncf";
 
-// Récupère la clé depuis l'URL, le localStorage, ou la variable globale
 function getApiKey(){
   const p = new URLSearchParams(location.search).get("key");
   if (p) return p;
@@ -11,7 +9,6 @@ function getApiKey(){
   return "";
 }
 
-// DOM refs
 const els = {
   clock: document.getElementById("clock"),
   dd: document.querySelector(".countdown .dd"),
@@ -25,44 +22,37 @@ const els = {
   canvas: document.getElementById("confetti"),
 };
 
-// Horloge
 function updateClock(){
   els.clock.textContent = new Date().toLocaleTimeString("fr-FR", {hour:"2-digit", minute:"2-digit", second:"2-digit"});
 }
 setInterval(updateClock, 1000); updateClock();
 
-// Utils
 function pad2(n){ return String(n).padStart(2, "0"); }
 function fmtHM(d){ return pad2(d.getHours()) + ":" + pad2(d.getMinutes()); }
 function parseSncfDate(s){
-  // "YYYYMMDDTHHMMSS"
   const y = +s.slice(0,4), m = +s.slice(4,6)-1, d = +s.slice(6,8);
   const H = +s.slice(9,11), M = +s.slice(11,13), S = +s.slice(13,15);
-  return new Date(Date.UTC(y,m,d,H,M,S)); // le navigateur affichera en local
+  return new Date(Date.UTC(y,m,d,H,M,S));
 }
 
-// API helper
 async function sncf(path, params = {}){
   const url = new URL(API_BASE + path);
   Object.entries(params).forEach(([k,v]) => url.searchParams.set(k, v));
   const key = getApiKey();
   const headers = key ? { "Authorization": "Basic " + btoa(key + ":") } : {};
   const res = await fetch(url, { headers });
-  if (!res.ok) throw new Error("API SNCF " + res.status);
+  if (!res.ok) throw new Error();
   return res.json();
 }
 
-// Compte à rebours
 let target = null, timer = null, confettiRunning = false;
 function startCountdown(date){
   target = date;
   if (timer) clearInterval(timer);
   document.body.classList.remove("splash");
-
   const tick = () => {
     const now = Date.now();
     let diff = target - now;
-
     if (diff <= 0){
       els.dd.textContent = "00";
       els.hh.textContent = "00";
@@ -75,29 +65,23 @@ function startCountdown(date){
       clearInterval(timer);
       return;
     }
-
     const d = Math.floor(diff/86400000); diff -= d*86400000;
     const h = Math.floor(diff/3600000);  diff -= h*3600000;
     const m = Math.floor(diff/60000);    diff -= m*60000;
     const s = Math.floor(diff/1000);
-
     els.dd.textContent = pad2(Math.min(d,99));
     els.hh.textContent = pad2(h);
     els.mm.textContent = pad2(m);
     els.ss.textContent = pad2(s);
-
     document.title = `💦 Splash dans ${d?d+"j ":""}${pad2(h)}:${pad2(m)}:${pad2(s)}`;
   };
-
   tick();
   timer = setInterval(tick, 1000);
 }
 
-// Confettis
 function celebrate(){
   if (confettiRunning) return;
   confettiRunning = true;
-
   const ctx = els.canvas.getContext("2d");
   const { width, height } = resizeCanvas();
   const pieces = Array.from({length: 240}, () => ({
@@ -108,7 +92,6 @@ function celebrate(){
     vy: Math.random()*2.2+2,
     a: Math.random()*Math.PI*2
   }));
-
   let run = true; let last = performance.now();
   function frame(t){
     if (!run) return;
@@ -130,7 +113,6 @@ function celebrate(){
   setTimeout(() => { run = false; confettiRunning = false; }, 12000);
 }
 
-// Canvas DPI
 function resizeCanvas(){
   const dpr = Math.max(1, devicePixelRatio || 1);
   els.canvas.width = innerWidth * dpr;
@@ -142,7 +124,6 @@ function resizeCanvas(){
 }
 addEventListener("resize", resizeCanvas); resizeCanvas();
 
-// Source temps cible : ?at=ISO ou SNCF ?key=
 async function getTargetTime(){
   const url = new URL(location.href);
   const at = url.searchParams.get("at");
@@ -156,15 +137,12 @@ async function getTargetTime(){
       return t;
     }
   }
-
-  // Sinon SNCF si clé dispo
   const key = getApiKey();
   if (key){
     try{
       els.sourceChip.textContent = "🚆 Source : SNCF (Labouheyre)";
       const data = await sncf(`/stop_areas/${encodeURIComponent(STATION_STOP_AREA)}/arrivals`, {
-        count: 8,
-        duration: 5400
+        count: 8, duration: 5400
       });
       const items = (data.arrivals||[]).map(a => {
         const sdt = a.stop_date_time;
@@ -174,23 +152,18 @@ async function getTargetTime(){
         const mode = di.commercial_mode || "Train";
         return { when, origin, mode, platform: sdt.stop_point && sdt.stop_point.platform };
       }).filter(x => x.when >= new Date(Date.now()-60000)).sort((a,b)=>a.when-b.when);
-
-      if (!items.length) throw new Error("Aucune arrivée imminente");
+      if (!items.length) throw new Error();
       const next = items[0];
-
       els.detailChip.textContent = `${next.mode} depuis ${next.origin} • Quai ${next.platform || "?"}`;
       els.eta.textContent = "Arrivée prévue à " + fmtHM(next.when);
       els.meta.textContent = "On synchronise le splash sur l’arrivée du train 🫧";
       return next.when;
     }catch(e){
-      // en cas d’échec, on passe en démo
       els.sourceChip.textContent = "🚦 Source : démo (fallback)";
     }
   }else{
     els.sourceChip.textContent = "⛱️ Source : horaire manuel/démo";
   }
-
-  // Démo par défaut : +10 minutes
   const demo = new Date(Date.now() + 10*60*1000 + 5000);
   els.detailChip.textContent = "Mode démo : +10 min";
   els.eta.textContent = "Splash prévu à " + fmtHM(demo);
@@ -198,7 +171,6 @@ async function getTargetTime(){
   return demo;
 }
 
-// Boot
 (async function(){
   const target = await getTargetTime();
   startCountdown(target);
